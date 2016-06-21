@@ -1,0 +1,4 @@
+#define NAME "@PROJECT_NAME@"
+#define BUILD "@CMAKE_BUILD_TYPE@"
+#define VERSION "@VERSION@"
+#define HUMAN_NAME NAME " v" VERSION " (" __DATE__ ")"

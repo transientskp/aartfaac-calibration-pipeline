@@ -1,0 +1,4 @@
+.*swp
+*.autosave
+build/
+CMakeLists.txt.user*
