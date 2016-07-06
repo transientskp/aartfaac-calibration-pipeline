@@ -45,6 +45,7 @@ include_directories (${PROJECT_BINARY_DIR})
 
 
 # === Find and include dependencies.
+find_package (Boost 1.40.0 COMPONENTS system)
 find_package (GFlags REQUIRED)
 find_package (Glog REQUIRED)
 find_package (Threads REQUIRED)
@@ -53,6 +54,7 @@ find_package (Casacore REQUIRED)
 find_package (Pipeline REQUIRED)
 
 include_directories (
+  ${Boost_INCLUDE_DIRS} SYSTEM
   ${GFLAGS_INCLUDE_DIRS} SYSTEM
   ${GLOG_INCLUDE_DIRS} SYSTEM
   ${EIGEN3_INCLUDE_DIR} SYSTEM
@@ -65,6 +67,7 @@ include_directories (
 add_executable (aartfaac-calibration ${PIPELINE_SOURCES})
 
 target_link_libraries (aartfaac-calibration
+  ${Boost_LIBRARIES}
   ${GFLAGS_LIBRARIES}
   ${GLOG_LIBRARIES}
   ${CMAKE_THREAD_LIBS_INIT}
