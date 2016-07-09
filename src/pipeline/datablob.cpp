@@ -24,6 +24,7 @@ Datum DataBlob::Serialize()
   Datum d(mACM.size() * sizeof(std::complex<float>) + sizeof(output_header_t));
   memcpy(d.data(), mHdr, sizeof(output_header_t));
   memcpy(d.data()+sizeof(output_header_t), mACM.data(), mACM.size() * sizeof(std::complex<float>));
+  return d;
 }
 
 std::string DataBlob::Name()
