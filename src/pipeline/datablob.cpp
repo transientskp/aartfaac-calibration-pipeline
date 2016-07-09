@@ -6,25 +6,24 @@
 
 DataBlob::DataBlob()
 {
-  mData.resize(NUM_BASELINES*NUM_CHANNELS*sizeof(std::complex<float>) + sizeof(output_header_t), 0);
-  mHdr = reinterpret_cast<output_header_t*>(mData.data());
+  mACM.resize(NUM_ANTENNAS, NUM_ANTENNAS);
+  mMask.resize(NUM_ANTENNAS, NUM_ANTENNAS);
 }
 
-void DataBlob::Swap(DataVector &data)
+void DataBlob::Reset(Datum &data)
 {
-  CHECK(data.size() == mData.size());
-  std::swap(data, mData);
-  mHdr = reinterpret_cast<output_header_t*>(mData.data());
+  mDatum = &data;
+  mHdr = reinterpret_cast<output_header_t*>(data.data());
+  mACM.setZero();
+  mMask.setIdentity();
+  mFlagged.clear();
 }
 
-void DataBlob::Serialise(std::ostream &stream)
+Datum DataBlob::Serialize()
 {
-
-}
-
-void DataBlob::Deserialise(std::ostream &stream)
-{
-
+  Datum d(mACM.size() * sizeof(std::complex<float>) + sizeof(output_header_t));
+  memcpy(d.data(), mHdr, sizeof(output_header_t));
+  memcpy(d.data()+sizeof(output_header_t), mACM.data(), mACM.size() * sizeof(std::complex<float>));
 }
 
 std::string DataBlob::Name()

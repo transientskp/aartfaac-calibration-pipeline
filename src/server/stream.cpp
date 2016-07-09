@@ -67,15 +67,16 @@ void Stream::Parse(std::size_t length)
     hdr.start_time = mHeader->startTime;
     hdr.end_time = mHeader->endTime;
     hdr.polarization = 0;
+    hdr.flagged_channels = 1ul;
     hdr.magic = OUTPUT_MAGIC;
-    hdr.num_dipoles = 288;
+    hdr.num_dipoles = NUM_ANTENNAS;
 
     memcpy(mXX.data(), &hdr, sizeof(hdr));
     hdr.polarization = 1;
     memcpy(mYY.data(), &hdr, sizeof(hdr));
 
-    std::complex<float> *xx = reinterpret_cast<std::complex<float>*>(mXX.data() + sizeof(input_header_t));
-    std::complex<float> *yy = reinterpret_cast<std::complex<float>*>(mYY.data() + sizeof(input_header_t));
+    std::complex<float> *xx = reinterpret_cast<std::complex<float>*>(mXX.data() + sizeof(output_header_t));
+    std::complex<float> *yy = reinterpret_cast<std::complex<float>*>(mYY.data() + sizeof(output_header_t));
     std::complex<float> *src = reinterpret_cast<std::complex<float>*>(mData.data() + sizeof(input_header_t));
 
     // XX pol

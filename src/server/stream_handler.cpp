@@ -19,7 +19,7 @@ void StreamHandler::StopAll()
   mStreams.clear();
 }
 
-StreamHandler::StreamHandler(Pipeline &pipeline):
+StreamHandler::StreamHandler(Pipeline<DataBlob> &pipeline):
   mPipeline(pipeline)
 {
 

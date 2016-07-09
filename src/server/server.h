@@ -13,13 +13,14 @@
 #include "packet.h"
 #include "stream.h"
 #include "stream_handler.h"
+#include "../pipeline/datablob.h"
 
 using boost::asio::ip::tcp;
 
 class Server
 {
 public:
-  Server(boost::asio::io_service& io_service, Pipeline &pipeline, uint16_t port);
+  Server(boost::asio::io_service& io_service, Pipeline<DataBlob> &pipeline, uint16_t port);
 
 private:
   void Listen();

@@ -2,7 +2,7 @@
 
 #include <glog/logging.h>
 
-Server::Server(boost::asio::io_service &io_service, Pipeline &pipeline, uint16_t port):
+Server::Server(boost::asio::io_service &io_service, Pipeline<DataBlob> &pipeline, uint16_t port):
   mStreamHandler(pipeline),
   mSignals(io_service),
   mAcceptor(io_service, tcp::endpoint(tcp::v4(), port)),

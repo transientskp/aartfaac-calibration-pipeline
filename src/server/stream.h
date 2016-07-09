@@ -4,7 +4,7 @@
 #include <vector>
 #include <complex>
 #include "packet.h"
-#include <pipeline/blob_interface.h>
+#include <pipeline/output_module_interface.h>
 
 using boost::asio::ip::tcp;
 
@@ -27,9 +27,9 @@ private:
 
   tcp::socket mSocket;
   input_header_t *mHeader;
-  DataVector mData;
-  DataVector mXX;
-  DataVector mYY;
+  Datum mData;
+  Datum mXX;
+  Datum mYY;
   StreamHandler &mHandler;
   uint32_t mBytesRead;
   uint64_t mTotalBytesRead;

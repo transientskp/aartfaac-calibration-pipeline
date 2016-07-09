@@ -6,6 +6,9 @@
 #include "pipeline/datablob.h"
 #include "server/server.h"
 #include "utils/validators.h"
+#include "pipeline/omodules/diskwriter.h"
+#include "pipeline/pmodules/flagger.h"
+#include "config.h"
 
 #define USAGE "AARTFAAC Calibration Pipeline"
 
@@ -39,8 +42,12 @@ int main(int argc, char *argv[])
 
   VLOG(1) << NAME << " " << VERSION << " (" << BUILD << ")";
 
-  Pipeline pipeline(FLAGS_nthreads);
-  pipeline.CreateMemoryPool<DataBlob>(100);
+  Pipeline<DataBlob> pipeline(FLAGS_nthreads);
+  pipeline.CreateMemoryPool(
+      NUM_BASELINES*NUM_CHANNELS*sizeof(std::complex<float>) + sizeof(output_header_t),
+      20);
+  pipeline.AddProcessingModule<Flagger>();
+  pipeline.AddOutputModule<DiskWriter>();
   pipeline.Start();
 
   try
@@ -55,26 +62,6 @@ int main(int argc, char *argv[])
   }
 
   pipeline.Stop();
-
-//  pipeline.AddProcessingModule<Flagger>();
-//  pipeline.AddOutputModule<DiskWriter>();
-//  pipeline.CreateMemoryPool<MyBlob>(20);
-//  pipeline.Start();
-//
-//  std::vector<uint8_t> data(4, 0);
-//
-//  int i = 0;
-//  int *p = nullptr;
-//  while (running && i < 1000)
-//  {
-//    p = reinterpret_cast<int*>(data.data());
-//    *p = i;
-//    pipeline.SwapAndProcess(data);
-//    i++;
-//    std::this_thread::sleep_for(std::chrono::milliseconds(r(mt)/(FLAGS_nthreads+1)));
-//  }
-//
-//  pipeline.Stop();
 
   return 0;
 }

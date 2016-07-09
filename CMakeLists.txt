@@ -72,7 +72,6 @@ target_link_libraries (aartfaac-calibration
   ${GLOG_LIBRARIES}
   ${CMAKE_THREAD_LIBS_INIT}
   ${CASACORE_LIBRARIES}
-  ${PIPELINE_LIBRARIES}
 )
 
 

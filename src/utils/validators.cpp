@@ -61,7 +61,7 @@ bool ValidateChannels(const char *flagname, const std::string &value)
 
 bool ValidateOutput(const char *flagname, const std::string &value)
 {
-  return value.size() > 4 && value.substr(0,3) == "tcp";
+  return value.size() > 5 && ("tcp:" == value.substr(0, 4) || value.substr(0, 5) == "file:");
 }
 
 } // namespace val

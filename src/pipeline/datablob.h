@@ -1,19 +1,21 @@
 #pragma once
 
-#include <pipeline/blob_interface.h>
+#include <Eigen/Dense>
+#include <pipeline/output_module_interface.h>
 #include "../server/packet.h"
 
-class DataBlob : public BlobInterface
+class DataBlob
 {
 public:
   DataBlob();
-  void Swap(DataVector &data);
-  void Serialise(std::ostream &stream);
-  void Deserialise(std::ostream &stream);
+  Datum Serialize();
+  void Reset(Datum &datum);
   std::string Name();
 
-private:
-  DataVector mData;
   output_header_t *mHdr;
+  Datum *mDatum;
+  Eigen::MatrixXcf mACM;
+  Eigen::MatrixXf mMask;
+  std::vector<int> mFlagged;
 };
 
