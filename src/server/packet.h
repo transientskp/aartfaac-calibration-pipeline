@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <bitset>
 
 #define OUTPUT_MAGIC 0x4141525446414143
 #define INPUT_MAGIC 0x3B98F002
@@ -17,15 +18,15 @@ struct input_header_t
 
 struct output_header_t
 {
-  uint64_t magic;               ///< magic to determine header
-  double start_time;            ///< start time (unix)
-  double end_time;              ///< end time (unix)
-  int32_t subband;              ///< lofar subband
-  int32_t num_dipoles;          ///< number of dipoles (288 or 576)
-  int32_t polarization;         ///< XX=0, YY=1
-  uint64_t flagged_channels;    ///< bitset of flagged channels
-  uint64_t flagged_dipoles[9];  ///< bitset of flagged dipoles
-  uint8_t pad[512-120];         ///< 512 byte block
+  uint64_t magic;                      ///< magic to determine header
+  double start_time;                   ///< start time (unix)
+  double end_time;                     ///< end time (unix)
+  int32_t subband;                     ///< lofar subband
+  int32_t num_dipoles;                 ///< number of dipoles (288 or 576)
+  int32_t polarization;                ///< XX=0, YY=1
+  std::bitset<64> flagged_channels;    ///< bitset of flagged channels
+  std::bitset<576> flagged_dipoles;    ///< bitset of flagged dipoles
+  uint8_t pad[512-120];                ///< 512 byte block
 };
 
 static_assert(sizeof(input_header_t) == 512, "header must be 512 bytes");

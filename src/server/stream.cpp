@@ -14,8 +14,8 @@ Stream::Stream(tcp::socket socket, StreamHandler &handler):
   mHandler(handler)
 {
   mData.resize(NUM_BASELINES*NUM_POLARIZATIONS*NUM_CHANNELS*sizeof(std::complex<float>) + sizeof(input_header_t), 0);
-  mXX.resize(NUM_BASELINES*NUM_CHANNELS*sizeof(std::complex<float>) + sizeof(input_header_t), 0);
-  mYY.resize(NUM_BASELINES*NUM_CHANNELS*sizeof(std::complex<float>) + sizeof(input_header_t), 0);
+  mXX.resize(NUM_BASELINES*NUM_CHANNELS*sizeof(std::complex<float>) + sizeof(output_header_t), 0);
+  mYY.resize(NUM_BASELINES*NUM_CHANNELS*sizeof(std::complex<float>) + sizeof(output_header_t), 0);
 
   mHeader = reinterpret_cast<input_header_t*>(mData.data());
 }
@@ -60,17 +60,18 @@ void Stream::Parse(std::size_t length)
   if (mBytesRead == mData.size())
   {
     CHECK(mHeader->magic == INPUT_MAGIC) << "Invalid magic!";
-
     // copy header to pols
     output_header_t hdr;
     hdr.subband = FLAGS_subband;
     hdr.start_time = mHeader->startTime;
     hdr.end_time = mHeader->endTime;
-    hdr.polarization = 0;
-    hdr.flagged_channels = 1ul;
+    hdr.flagged_dipoles.reset();
+    hdr.flagged_channels.reset();
+    hdr.flagged_channels[0] = true;
     hdr.magic = OUTPUT_MAGIC;
     hdr.num_dipoles = NUM_ANTENNAS;
 
+    hdr.polarization = 0;
     memcpy(mXX.data(), &hdr, sizeof(hdr));
     hdr.polarization = 1;
     memcpy(mYY.data(), &hdr, sizeof(hdr));

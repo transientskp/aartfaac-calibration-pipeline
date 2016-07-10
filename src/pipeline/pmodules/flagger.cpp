@@ -43,7 +43,6 @@ void Flagger::Run(DataBlob &b)
          NUM_CHANNELS,
          NUM_BASELINES);
 
-
   // Compute statistics only when we have enough channels
   if (M >= 3)
   {
@@ -115,25 +114,23 @@ void Flagger::Run(DataBlob &b)
   {
     b.mACM.col(i).head(i + 1) = mResult.segment(s, i + 1).conjugate();
     b.mACM.row(i).head(i + 1) = mResult.segment(s, i + 1);
-//    b.mACM(i,i).imag() = 0.0f;
+    b.mACM(i,i) = std::complex<float>(b.mACM(i,i).real(), 0.0f);
     s += i + 1;
   }
 
   // clear NaN values
   b.mACM = (b.mACM.array() != b.mACM.array()).select(complex<float>(0.0f, 0.0f), b.mACM);
 
-  /*
   // Create "dipoles" by computing the absolute mean of the visibilities
-  mAntennas = output->mCleanData[pol].array().abs().colwise().mean();
+  mAntennas = b.mACM.array().abs().colwise().mean();
   for (int a = 0; a < mAntennas.size(); a++)
   {
     if (mAntennas(a) <= 1e-5f &&
-        std::find(output->mFlagged[pol].begin(), output->mFlagged[pol].end(), a)
-        == output->mFlagged[pol].end())
+        std::find(b.mFlagged.begin(), b.mFlagged.end(), a) == b.mFlagged.end())
     {
-      output->mMasks[pol].col(a).setOnes();
-      output->mMasks[pol].row(a).setOnes();
-      output->mFlagged[pol].push_back(a);
+      b.mMask.col(a).setOnes();
+      b.mMask.row(a).setOnes();
+      b.mFlagged.push_back(a);
     }
   }
 
@@ -155,10 +152,12 @@ void Flagger::Run(DataBlob &b)
   {
     if (mAntennas(a) < (centroid - std) || mAntennas(a) > (centroid + std))
     {
-      output->mMasks[pol].col(a).setOnes();
-      output->mMasks[pol].row(a).setOnes();
-      output->mFlagged[pol].push_back(a);
+      b.mMask.col(a).setOnes();
+      b.mMask.row(a).setOnes();
+      b.mFlagged.push_back(a);
     }
   }
-   */
+
+  for (auto i : b.mFlagged)
+    b.mHdr->flagged_dipoles[i] = true;
 }
