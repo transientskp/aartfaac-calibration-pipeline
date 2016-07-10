@@ -7,6 +7,7 @@ set (PIPELINE_SOURCES
   src/utils/validators.cpp
   src/pipeline/datablob.cpp
   src/pipeline/pmodules/flagger.cpp
+  src/pipeline/pmodules/calibrator.cpp
   src/pipeline/omodules/diskwriter.cpp
   src/server/server.cpp
   src/server/stream_handler.cpp

@@ -38,7 +38,7 @@ void Flagger::Run(DataBlob &b)
   mMaxVal.resize(N);
   mResult.resize(N);
 
-  Eigen::Map<Eigen::MatrixXcf>
+  Eigen::Map<Eigen::MatrixXcf, Eigen::Aligned>
     raw(reinterpret_cast<std::complex<float>*>(b.mDatum->data()+sizeof(output_header_t)),
          NUM_CHANNELS,
          NUM_BASELINES);

@@ -9,6 +9,7 @@
 #include "pipeline/omodules/diskwriter.h"
 #include "pipeline/pmodules/flagger.h"
 #include "config.h"
+#include "pipeline/pmodules/calibrator.h"
 
 #define USAGE "AARTFAAC Calibration Pipeline"
 
@@ -47,6 +48,7 @@ int main(int argc, char *argv[])
       NUM_BASELINES*NUM_CHANNELS*sizeof(std::complex<float>) + sizeof(output_header_t),
       20);
   pipeline.AddProcessingModule<Flagger>();
+  pipeline.AddProcessingModule<Calibrator>();
   pipeline.AddOutputModule<DiskWriter>();
   pipeline.Start();
 
