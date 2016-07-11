@@ -16,7 +16,6 @@ Stream::Stream(tcp::socket socket, StreamHandler &handler):
   mData.resize(NUM_BASELINES*NUM_POLARIZATIONS*NUM_CHANNELS*sizeof(std::complex<float>) + sizeof(input_header_t), 0);
   mXX.resize(NUM_BASELINES*NUM_CHANNELS*sizeof(std::complex<float>) + sizeof(output_header_t), 0);
   mYY.resize(NUM_BASELINES*NUM_CHANNELS*sizeof(std::complex<float>) + sizeof(output_header_t), 0);
-
   mHeader = reinterpret_cast<input_header_t*>(mData.data());
 }
 
@@ -70,6 +69,7 @@ void Stream::Parse(std::size_t length)
     hdr.flagged_channels[0] = true;
     hdr.magic = OUTPUT_MAGIC;
     hdr.num_dipoles = NUM_ANTENNAS;
+    memcpy(hdr.weights, mHeader->weights, 87*sizeof(uint32_t));
 
     hdr.polarization = 0;
     memcpy(mXX.data(), &hdr, sizeof(hdr));

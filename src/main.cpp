@@ -3,13 +3,14 @@
 #include <pipeline/pipeline.h>
 
 #include "version.h"
+#include "config.h"
 #include "pipeline/datablob.h"
 #include "server/server.h"
 #include "utils/validators.h"
 #include "pipeline/omodules/diskwriter.h"
 #include "pipeline/pmodules/flagger.h"
-#include "config.h"
 #include "pipeline/pmodules/calibrator.h"
+#include "pipeline/pmodules/weighter.h"
 
 #define USAGE "AARTFAAC Calibration Pipeline"
 
@@ -47,6 +48,7 @@ int main(int argc, char *argv[])
   pipeline.CreateMemoryPool(
       NUM_BASELINES*NUM_CHANNELS*sizeof(std::complex<float>) + sizeof(output_header_t),
       20);
+  pipeline.AddProcessingModule<Weighter>();
   pipeline.AddProcessingModule<Flagger>();
   pipeline.AddProcessingModule<Calibrator>();
   pipeline.AddOutputModule<DiskWriter>();
