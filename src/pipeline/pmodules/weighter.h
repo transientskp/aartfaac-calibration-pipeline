@@ -13,4 +13,7 @@ public:
   virtual std::string Name();
   virtual void Initialize();
   virtual void Run(DataBlob &blob);
+
+private:
+  int32_t Index(int i, int j);
 };

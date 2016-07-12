@@ -16,6 +16,7 @@
 
 DEFINE_int32(nthreads, 2, "Number of pipeline threads");
 DEFINE_int32(port, 4000, "Port to listen on for incoming data");
+DEFINE_int32(buffer, 20, "Ringbuffer size in number of seconds");
 DEFINE_string(output, "", "Output location e.g. 'tcp:127.0.0.1:5000'");
 DEFINE_int32(subband, -1, "Lofar subband that defines the frequency of incoming data");
 DEFINE_string(channels, "0-62", "List of channel ranges to use e.g. '0-10,12-30,31-31' (inclusive)");
@@ -47,7 +48,7 @@ int main(int argc, char *argv[])
   Pipeline<DataBlob> pipeline(FLAGS_nthreads);
   pipeline.CreateMemoryPool(
       NUM_BASELINES*NUM_CHANNELS*sizeof(std::complex<float>) + sizeof(output_header_t),
-      20);
+      FLAGS_buffer*2);
   pipeline.AddProcessingModule<Weighter>();
   pipeline.AddProcessingModule<Flagger>();
   pipeline.AddProcessingModule<Calibrator>();

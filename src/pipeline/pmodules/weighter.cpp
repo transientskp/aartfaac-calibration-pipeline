@@ -2,6 +2,8 @@
 #include "weighter.h"
 #include "../../config.h"
 
+int32_t index();
+
 std::string Weighter::Name()
 {
   return "Weighter";
@@ -30,9 +32,21 @@ void Weighter::Run(DataBlob &b)
           NUM_CHANNELS,
           NUM_BASELINES);
 
-  for (int i = 0; i < n; i++)
+  int s0, s1;
+  float w;
+  for (int a0 = 0; a0 < NUM_ANTENNAS; a0++)
   {
-    float w = b.mHdr->weights[i] / float(max_num);
-    raw.block(i*48, 0, i*48+47, NUM_BASELINES) *= w;
+    s0 = a0/NUM_ANTENNAS_PER_STATION;
+    for (int a1 = 0; a1 <= a0; a1++)
+    {
+      s1 = a1/NUM_ANTENNAS_PER_STATION;
+      w = b.mHdr->weights[Index(s0, s1)] / float(max_num);
+      raw.col(Index(a0, a1)) *= w;
+    }
   }
+}
+
+int32_t Weighter::Index(int i, int j)
+{
+  return i*(i+1)/2 + j;
 }
