@@ -37,6 +37,7 @@ int main(int argc, char *argv[])
   ::google::RegisterFlagValidator(&FLAGS_nthreads, &val::ValidateNumThreads);
   ::google::RegisterFlagValidator(&FLAGS_channels, &val::ValidateChannels);
   ::google::RegisterFlagValidator(&FLAGS_output, &val::ValidateOutput);
+  ::google::RegisterFlagValidator(&FLAGS_antpos, &val::ValidateFile);
 
 
   ::google::SetUsageMessage(USAGE);

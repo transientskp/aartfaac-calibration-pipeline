@@ -2,6 +2,7 @@
 #include "utils.h"
 
 #include <vector>
+#include <fstream>
 
 namespace val
 {
@@ -61,7 +62,15 @@ bool ValidateChannels(const char *flagname, const std::string &value)
 
 bool ValidateOutput(const char *flagname, const std::string &value)
 {
+  (void) flagname;
   return value.size() > 5 && ("tcp:" == value.substr(0, 4) || value.substr(0, 5) == "file:");
+}
+
+bool ValidateFile(const char *flagname, const std::string &value)
+{
+  (void) flagname;
+  std::ifstream file(value, std::ifstream::in);
+  return file.good();
 }
 
 } // namespace val
