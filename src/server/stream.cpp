@@ -13,6 +13,7 @@ Stream::Stream(tcp::socket socket, StreamHandler &handler):
   mSocket(std::move(socket)),
   mHandler(handler)
 {
+  mBuffer.resize(1024);
   mData.resize(NUM_BASELINES*NUM_POLARIZATIONS*NUM_CHANNELS*sizeof(std::complex<float>) + sizeof(input_header_t), 0);
   mXX.resize(NUM_BASELINES*NUM_CHANNELS*sizeof(std::complex<float>) + sizeof(output_header_t), 0);
   mYY.resize(NUM_BASELINES*NUM_CHANNELS*sizeof(std::complex<float>) + sizeof(output_header_t), 0);
@@ -33,8 +34,7 @@ void Stream::Read()
 {
   auto self(shared_from_this());
 
-  // 256 is the biggest number divisible to mData.size()
-  mSocket.async_read_some(boost::asio::buffer(mData.data()+mBytesRead, 256),
+  mSocket.async_read_some(boost::asio::buffer(mBuffer.data(), mBuffer.size()),
                           [this, self](boost::system::error_code ec, std::size_t length)
                           {
                             if (!ec)
@@ -51,12 +51,10 @@ void Stream::Read()
 
 void Stream::Parse(std::size_t length)
 {
-  mBytesRead += length;
-  mTotalBytesRead += length;
+  int n = std::min(mData.size()-mBytesRead, length);
+  memcpy(mData.data()+mBytesRead, mBuffer.data(), n);
 
-  CHECK(mBytesRead <= mData.size());
-
-  if (mBytesRead == mData.size())
+  if (mBytesRead+n >= mData.size())
   {
     CHECK(mHeader->magic == INPUT_MAGIC) << "Invalid magic!";
     // copy header to pols
@@ -69,7 +67,7 @@ void Stream::Parse(std::size_t length)
     hdr.flagged_channels[0] = true;
     hdr.magic = OUTPUT_MAGIC;
     hdr.num_dipoles = NUM_ANTENNAS;
-    memcpy(hdr.weights, mHeader->weights, 87*sizeof(uint32_t));
+    memcpy(hdr.weights, mHeader->weights, 78*sizeof(uint32_t));
 
     hdr.polarization = 0;
     memcpy(mXX.data(), &hdr, sizeof(hdr));
@@ -97,8 +95,15 @@ void Stream::Parse(std::size_t length)
                sizeof(std::complex<float>));
 
     mHandler.mPipeline.SwapAndProcess(mYY);
-    mBytesRead = 0;
+    mBytesRead = length - n;
+    memcpy(mData.data(), mBuffer.data()+n, mBytesRead);
   }
+  else
+  {
+    mBytesRead += length;
+  }
+
+  mTotalBytesRead += length;
 
   Read();
 }

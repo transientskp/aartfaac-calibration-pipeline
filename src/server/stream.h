@@ -27,6 +27,8 @@ private:
 
   tcp::socket mSocket;
   input_header_t *mHeader;
+
+  Datum mBuffer;
   Datum mData;
   Datum mXX;
   Datum mYY;
