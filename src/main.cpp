@@ -46,8 +46,6 @@ int main(int argc, char *argv[])
   ::google::InitGoogleLogging(argv[0]);
   ::google::InstallFailureSignalHandler();
 
-  VLOG(1) << NAME << " " << VERSION << " (" << BUILD << ")";
-
   AntennaPositions::CreateInstance(FLAGS_antpos);
 
   Pipeline<DataBlob> pipeline(FLAGS_nthreads);

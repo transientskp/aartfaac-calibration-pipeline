@@ -11,6 +11,9 @@ public:
   Datum Serialize();
   void Reset(Datum &datum);
   std::string Name();
+  float CentralFrequency();
+  double CentralTime();
+  bool IsValid();
 
   output_header_t *mHdr;
   Datum *mDatum;

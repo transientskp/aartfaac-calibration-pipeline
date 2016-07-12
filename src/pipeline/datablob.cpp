@@ -35,3 +35,18 @@ std::string DataBlob::Name()
   std::snprintf(buf, 256, "%i %0.1f %s %i %i", mHdr->subband, mHdr->end_time, mHdr->polarization ? "YY" : "XX", fdips, fchans);
   return buf;
 }
+
+float DataBlob::CentralFrequency()
+{
+  return utils::Subband2Frequency(mHdr->subband);
+}
+
+double DataBlob::CentralTime()
+{
+  return utils::UnixTime2MJD(0.5*(mHdr->start_time+mHdr->end_time)) / 86400.0 + 2400000.5;
+}
+
+bool DataBlob::IsValid()
+{
+  return mFlagged.size() < NUM_ANTENNAS*0.05;
+}

@@ -2,6 +2,22 @@
 
 namespace utils
 {
+static const double seconds_between_julian_and_unix_epoch = 3506716800.0;
+
+double MJDs2JD(const double inMJDs)
+{
+  return (inMJDs / 86400.0) + 2400000.5;
+}
+
+double MJD2UnixTime(const double inMJD)
+{
+  return inMJD - seconds_between_julian_and_unix_epoch;
+}
+
+double UnixTime2MJD(const double inUnixTime)
+{
+  return inUnixTime + seconds_between_julian_and_unix_epoch;
+}
 
 float Subband2Frequency(const int subband, const float clock)
 {
@@ -67,6 +83,17 @@ std::vector<std::pair<int,int>> ParseChannels(const std::string &value)
   std::sort(channels.begin(), channels.end());
 
   return channels;
+}
+
+void sunRaDec(const double inJD, double &outRa, double &outDec)
+{
+  double n = inJD - 2451545.0;
+  double L = std::fmod(280.460 + 0.9856474 * n, 360.0);
+  double g = std::fmod(357.528 + 0.9856003 * n, 360.0);
+  double lambda = L + 1.915 * sin(DEG2RAD(g)) + 0.020 * sin(DEG2RAD(2*g));
+  double epsilon = 23.439 - 0.0000004 * n;
+  outRa = atan2(cos(DEG2RAD(epsilon)) * sin(DEG2RAD(lambda)), cos(DEG2RAD(lambda)));
+  outDec = asin(sin(DEG2RAD(epsilon)) * sin(DEG2RAD(lambda)));
 }
 
 }

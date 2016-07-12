@@ -38,10 +38,10 @@ template<typename D>
 VectorXi sort(Matrix<D, Dynamic, 1> &V)
 {
   VectorXi I(V.size());
-  std::vector<std::pair<D, int> > P(V.size());
+  std::vector<std::pair<D, int>> P(V.size());
 
   for (int i = 0; i < V.size(); i++)
-    P[i] = std::make_pair<D, int>(V(i), i);
+    P[i] = std::make_pair(V(i), i);
 
   std::sort(P.begin(), P.end(), Sorter<D>);
 
@@ -88,11 +88,7 @@ Matrix<D, Dynamic, 1> Simplex(
   VecX f(n + 1);
   f(0) = dirn * fun(x);
   V.col(0) = x0;
-#ifdef NM_TRACE
-  D fmax_old = f(0);
-#else // suppress warning on unused variable
   (void) how;
-#endif
 
   // Setup initial regular shaped simplex
   D scale = std::max(x0.template lpNorm<Infinity>(), 1.0);
