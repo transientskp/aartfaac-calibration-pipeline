@@ -2,6 +2,7 @@
 
 #include <pipeline/processing_module_interface.h>
 #include <Eigen/Dense>
+#include <bitset>
 
 #include "../datablob.h"
 

@@ -32,7 +32,17 @@ std::string DataBlob::Name()
   char buf[256];
   int fdips = mHdr->flagged_dipoles.count();
   int fchans = mHdr->flagged_channels.count();
-  std::snprintf(buf, 256, "%i %0.1f %s %i %i", mHdr->subband, mHdr->end_time, mHdr->polarization ? "YY" : "XX", fdips, fchans);
+  std::snprintf(buf, 256, "%i %0.1f %s %i %i %0.5f %0.5f %0.5f %0.5f %0.5f",
+                mHdr->subband,
+                mHdr->end_time,
+                mHdr->polarization ? "YY" : "XX",
+                fdips,
+                fchans,
+                mHdr->ateam[0],
+                mHdr->ateam[1],
+                mHdr->ateam[2],
+                mHdr->ateam[3],
+                mHdr->ateam[4]);
   return buf;
 }
 

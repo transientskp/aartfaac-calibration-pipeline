@@ -65,6 +65,7 @@ void Stream::Parse(std::size_t length)
     hdr.flagged_dipoles.reset();
     hdr.flagged_channels.reset();
     hdr.flagged_channels[0] = true;
+    hdr.num_channels = NUM_CHANNELS + 1;
     hdr.magic = OUTPUT_MAGIC;
     hdr.num_dipoles = NUM_ANTENNAS;
     memcpy(hdr.weights, mHeader->weights, 78*sizeof(uint32_t));

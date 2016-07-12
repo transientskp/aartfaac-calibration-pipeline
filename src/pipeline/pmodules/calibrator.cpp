@@ -55,12 +55,12 @@ void Calibrator::Initialize()
 void Calibrator::Run(DataBlob &blob)
 {
   static const double min_restriction = 10.0;                 ///< avoid vis. below this wavelength
-  static const double max_restriction = 350.0;                 ///< avoid vis. above this much meters
+  static const double max_restriction = 350.0;                ///< avoid vis. above this much meters
   static const Vector3d normal(0.598753, 0.072099, 0.797682); ///< Normal to CS002 (central antenna)
 
   if (!blob.IsValid())
   {
-    VLOG(1) << "Very poor data, dropping";
+    VLOG(1) << "Poor data, dropping " << blob.Name();
     return;
   }
 
@@ -168,6 +168,15 @@ void Calibrator::Run(DataBlob &blob)
   // ===============================
   MatrixXcf ATeam = A * mFluxes.asDiagonal() * A.adjoint();
   mNormalizedData.array() -= ATeam.array();
+
+  for (int i = 0, n = mFluxes.rows(); i < n; i++)
+  {
+    blob.mHdr->ateam[i] = 0.0f;
+    if (mFluxes(i) > mFluxes(0)*0.01)
+    {
+      blob.mHdr->ateam[i] = mFluxes(i);
+    }
+  }
 
   // ================================================================
   // ==== 6. Reconstruct the full ACM from the reshaped matrices ====
