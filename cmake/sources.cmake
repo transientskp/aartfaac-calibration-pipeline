@@ -5,6 +5,7 @@ set (PIPELINE_SOURCES
   src/main.cpp
   src/utils/utils.cpp
   src/utils/validators.cpp
+  src/utils/antenna_positions.cpp
   src/pipeline/datablob.cpp
   src/pipeline/pmodules/flagger.cpp
   src/pipeline/pmodules/calibrator.cpp
