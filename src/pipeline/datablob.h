@@ -19,6 +19,5 @@ public:
   Datum *mDatum;
   Eigen::MatrixXcf mACM;
   Eigen::MatrixXf mMask;
-  std::vector<int> mFlagged;
 };
 

@@ -125,12 +125,11 @@ void Flagger::Run(DataBlob &b)
   mAntennas = b.mACM.array().abs().colwise().mean();
   for (int a = 0; a < mAntennas.size(); a++)
   {
-    if (mAntennas(a) <= 1e-5f &&
-        std::find(b.mFlagged.begin(), b.mFlagged.end(), a) == b.mFlagged.end())
+    if (mAntennas(a) <= 1e-5f)
     {
       b.mMask.col(a).setOnes();
       b.mMask.row(a).setOnes();
-      b.mFlagged.push_back(a);
+      b.mHdr->flagged_dipoles[a] = true;
     }
   }
 
@@ -150,14 +149,12 @@ void Flagger::Run(DataBlob &b)
   std *= mAntSigma;
   for (int a = 0; a < NUM_ANTENNAS; a++)
   {
-    if (mAntennas(a) < (centroid - std) || mAntennas(a) > (centroid + std))
+    if (!b.mHdr->flagged_dipoles[a] &&
+        (mAntennas(a) < (centroid - std) || mAntennas(a) > (centroid + std)))
     {
       b.mMask.col(a).setOnes();
       b.mMask.row(a).setOnes();
-      b.mFlagged.push_back(a);
+      b.mHdr->flagged_dipoles[a] = true;
     }
   }
-
-  for (auto i : b.mFlagged)
-    b.mHdr->flagged_dipoles[i] = true;
 }

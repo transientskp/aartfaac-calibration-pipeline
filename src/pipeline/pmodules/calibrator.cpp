@@ -68,38 +68,28 @@ void Calibrator::Run(DataBlob &blob)
   // =====================================
   // ==== 0. Prepare/Reshape matrices ====
   // =====================================
-  int num_antennas = NUM_ANTENNAS - blob.mFlagged.size();
+  int num_antennas = NUM_ANTENNAS - blob.mHdr->flagged_dipoles.count();
+  mNormalizedData.resize(num_antennas, num_antennas);
+  mSpatialFilterMask.resize(num_antennas, num_antennas);
+  mMask.resize(num_antennas, num_antennas);
+  mNoiseCovMatrix.resize(num_antennas, num_antennas);
+  mAntennaLocalPosReshaped.resize(num_antennas, 3);
+  mGains.resize(num_antennas);
 
-  if (mFlagged.size() != blob.mFlagged.size())
+  std::vector<int> I;
+  for (int i = 0; i < NUM_ANTENNAS; i++)
+    if (!blob.mHdr->flagged_dipoles[i])
+      I.push_back(i);
+  CHECK(I.size() == num_antennas);
+  
+  for (int i = 0; i < num_antennas; i++)
   {
-    mNormalizedData.resize(num_antennas, num_antennas);
-    mSpatialFilterMask.resize(num_antennas, num_antennas);
-    mMask.resize(num_antennas, num_antennas);
-    mNoiseCovMatrix.resize(num_antennas, num_antennas);
-    mAntennaLocalPosReshaped.resize(num_antennas, 3);
-    mGains.resize(num_antennas);
-  }
-  mFlagged = blob.mFlagged;
-
-  for (int a1 = 0, _a1 = 0; a1 < NUM_ANTENNAS; a1++)
-  {
-    if (std::find(mFlagged.begin(), mFlagged.end(), a1) != mFlagged.end())
-      continue;
-
-    mAntennaLocalPosReshaped.row(_a1) = ANT_ITRF().row(a1);
-
-    for (int a2 = 0, _a2 = 0; a2 < NUM_ANTENNAS; a2++)
+    for (int j = 0; j < num_antennas; j++)
     {
-      if (std::find(mFlagged.begin(), mFlagged.end(), a2) != mFlagged.end())
-        continue;
-
-      mNormalizedData(_a1, _a2) = blob.mACM(a1, a2);
-      mSpatialFilterMask(_a1, _a2) = mUVDist(a1, a2) < uvdist_cutoff ? 1.0f : 0.0f;
-      mMask(_a1, _a2) = blob.mMask(a1, a2);
-      _a2++;
+      mNormalizedData(i, j) = blob.mACM(I[i], I[j]);
+      mSpatialFilterMask(i, j) = mUVDist(I[i], I[j]) < uvdist_cutoff ? 1.0f : 0.0f;
+      mMask(i, j) = blob.mMask(I[i], I[j]);
     }
-
-    _a1++;
   }
 
   double time = blob.CentralTime();
@@ -178,22 +168,9 @@ void Calibrator::Run(DataBlob &blob)
   // ================================================================
   // ==== 6. Reconstruct the full ACM from the reshaped matrices ====
   // ================================================================
-  for (int a1 = 0, _a1 = 0; a1 < NUM_ANTENNAS; a1++)
-  {
-    if (std::find(mFlagged.begin(), mFlagged.end(), a1) != mFlagged.end())
-      continue;
-
-    for (int a2 = 0, _a2 = 0; a2 < NUM_ANTENNAS; a2++)
-    {
-      if (std::find(mFlagged.begin(), mFlagged.end(), a2) != mFlagged.end())
-        continue;
-
-      blob.mACM(a1, a2) = mNormalizedData(_a1, _a2);
-      _a2++;
-    }
-
-    _a1++;
-  }
+  for (int i = 0; i < num_antennas; i++)
+    for (int j = 0; j < num_antennas; j++)
+      blob.mACM(I[i], I[j]) = mNormalizedData(i, j);
 }
 
 void Calibrator::statCal(const MatrixXcf &inData,

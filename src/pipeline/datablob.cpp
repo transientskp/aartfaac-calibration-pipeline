@@ -16,7 +16,7 @@ void DataBlob::Reset(Datum &data)
   mHdr = reinterpret_cast<output_header_t*>(data.data());
   mACM.setZero();
   mMask.setIdentity();
-  mFlagged.clear();
+  mHdr->flagged_dipoles.reset();
 }
 
 Datum DataBlob::Serialize()
@@ -58,5 +58,5 @@ double DataBlob::CentralTime()
 
 bool DataBlob::IsValid()
 {
-  return mFlagged.size() < NUM_ANTENNAS*0.05;
+  return mHdr->flagged_dipoles.count() < NUM_ANTENNAS*0.2;
 }
