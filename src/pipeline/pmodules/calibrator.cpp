@@ -76,12 +76,11 @@ void Calibrator::Run(DataBlob &blob)
   mAntennaLocalPosReshaped.resize(num_antennas, 3);
   mGains.resize(num_antennas);
 
-  std::vector<int> I;
-  for (int i = 0; i < NUM_ANTENNAS; i++)
+  std::vector<int> I(num_antennas);
+  for (int i = 0, j = 0; i < NUM_ANTENNAS; i++)
     if (!blob.mHdr->flagged_dipoles[i])
-      I.push_back(i);
-  CHECK(I.size() == num_antennas);
-  
+      I[j++] = i;
+
   for (int i = 0; i < num_antennas; i++)
   {
     for (int j = 0; j < num_antennas; j++)
@@ -108,12 +107,14 @@ void Calibrator::Run(DataBlob &blob)
   VectorXd up = src_pos * normal;
   mSelection.resize((up.array() > 0.1).count(), 3);
 
+  std::vector<int> src_indices;
   for (int i = 0, j = 0, n = src_pos.rows(); i < n; i++)
   {
     if (up(i) > 0.1)
     {
-      for (int k = 0; k < src_pos.cols(); k++)
-        mSelection(j, k) = src_pos(i, k);
+      mSelection.row(j) = src_pos.row(i);
+      blob.mHdr->ateam[i] = true;
+      src_indices.push_back(i);
       j++;
     }
   }
@@ -135,6 +136,8 @@ void Calibrator::Run(DataBlob &blob)
       fluxes(j) = mFluxes(i);
       j++;
     }
+    else
+      blob.mHdr->ateam[src_indices[i]] = false;
   }
   wsfSrcPos(mNormalizedData, mNoiseCovMatrix, mGains, mFrequency, selection);
 
@@ -156,12 +159,14 @@ void Calibrator::Run(DataBlob &blob)
   MatrixXcf ATeam = A * mFluxes.asDiagonal() * A.adjoint();
   mNormalizedData.array() -= ATeam.array();
 
-  for (int i = 0, n = mFluxes.rows(); i < n; i++)
+  // store fluxes
+  CHECK(blob.mHdr->ateam.count() == mFluxes.size());
+  for (int i = 0, j = 0; i < 5; i++)
   {
-    blob.mHdr->ateam[i] = 0.0f;
-    if (mFluxes(i) > mFluxes(0)*0.01)
+    if (blob.mHdr->ateam[i])
     {
-      blob.mHdr->ateam[i] = mFluxes(i);
+      blob.mHdr->ateam_flux[i] = mFluxes(j);
+      j++;
     }
   }
 
