@@ -59,10 +59,7 @@ void Calibrator::Run(DataBlob &blob)
   static const Vector3d normal(0.598753, 0.072099, 0.797682); ///< Normal to CS002 (central antenna)
 
   if (!blob.IsValid())
-  {
-    VLOG(1) << "Poor data, dropping " << blob.Name();
     return;
-  }
 
   mHasConverged = true;
   mFrequency = blob.CentralFrequency();
