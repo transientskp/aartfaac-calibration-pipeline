@@ -1,4 +1,5 @@
 #include <glog/logging.h>
+#include <sstream>
 #include "weighter.h"
 #include "../../config.h"
 
@@ -6,7 +7,19 @@ int32_t index();
 
 std::string Weighter::Name()
 {
-  return "Weighter";
+  std::stringstream ss;
+  ss << "Weighter: ";
+  if (mMaxNum == 0)
+    ss << "unsupported header";
+  else
+  {
+    ss.precision(2);
+    constexpr int n = NUM_ANTENNAS == 288 ? (6*7/2) : (12*13/2);
+    for (int i = 0; i < n; i++)
+      ss << std::fixed << mBlob->mHdr->weights[i]/float(mMaxNum) << " ";
+  }
+
+  return ss.str();
 }
 
 void Weighter::Initialize()
@@ -16,16 +29,15 @@ void Weighter::Initialize()
 void Weighter::Run(DataBlob &b)
 {
   constexpr int n = NUM_ANTENNAS == 288 ? (6*7/2) : (12*13/2);
-  uint32_t max_num = 0;
+  mMaxNum = 0;
   for (int i = 0; i < n; i++)
-    max_num = std::max(b.mHdr->weights[i], max_num);
+    mMaxNum = std::max(b.mHdr->weights[i], mMaxNum);
+
+  mBlob = &b;
 
   // Header doesn't support weights yet
-  if (max_num == 0)
-  {
-    VLOG(3) << "Incomming header does not support weights - skipping";
+  if (mMaxNum == 0)
     return;
-  }
 
   Eigen::Map<Eigen::MatrixXcf, Eigen::Aligned>
       raw(reinterpret_cast<std::complex<float>*>(b.mDatum->data()+sizeof(output_header_t)),
@@ -40,7 +52,7 @@ void Weighter::Run(DataBlob &b)
     for (int a1 = 0; a1 <= a0; a1++)
     {
       s1 = a1/NUM_ANTENNAS_PER_STATION;
-      w = b.mHdr->weights[Index(s0, s1)] / float(max_num);
+      w = b.mHdr->weights[Index(s0, s1)] / float(mMaxNum);
       raw.col(Index(a0, a1)) *= w;
     }
   }

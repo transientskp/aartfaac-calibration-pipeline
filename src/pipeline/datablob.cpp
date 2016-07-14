@@ -1,4 +1,6 @@
 #include <glog/logging.h>
+#include <iomanip>
+#include <sstream>
 #include "datablob.h"
 
 #include "../config.h"
@@ -32,22 +34,13 @@ Datum DataBlob::Serialize()
 
 std::string DataBlob::Name()
 {
-  char buf[256];
   int fdips = mHdr->flagged_dipoles.count();
   int fchans = mHdr->flagged_channels.count();
-  std::snprintf(buf, 256, "%i %0.2f %s %i %i %0.6f %0.6f %0.6f %0.6f %0.6f",
-                mHdr->subband,
-                CentralTimeMJD(),
-                mHdr->polarization ? "YY" : "XX",
-                fdips,
-                fchans,
-                mHdr->ateam_flux[0],
-                mHdr->ateam_flux[1],
-                mHdr->ateam_flux[2],
-                mHdr->ateam_flux[3],
-                mHdr->ateam_flux[4]
-  );
-  return buf;
+  std::stringstream ss;
+  ss << mHdr->subband << " " << std::fixed << std::setprecision(1) << CentralFrequency();
+  ss << " " << std::setprecision(2) << CentralTimeMJD();
+  ss << " " << (mHdr->polarization ? "YY" : "XX") << " " << fdips << " " << fchans << mHdr->ateam;
+  return ss.str();
 }
 
 float DataBlob::CentralFrequency()

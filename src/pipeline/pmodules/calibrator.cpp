@@ -1,4 +1,6 @@
 #include <glog/logging.h>
+#include <iomanip>
+#include <sstream>
 #include "calibrator.h"
 
 #include "../../utils/antenna_positions.h"
@@ -10,7 +12,12 @@
 
 std::string Calibrator::Name()
 {
-  return "Calibrator";
+  std::stringstream ss;
+  ss << "Calibrator: ";
+  ss << std::setprecision(6) << std::fixed;
+  for (int i = 0; i < mFluxes.size(); i++)
+    ss << mFluxes(i) << " " << mRaSources(i) << " " << mDecSources(i) << " ";
+  return ss.str();
 }
 
 void Calibrator::Initialize()
@@ -160,7 +167,7 @@ void Calibrator::Run(DataBlob &blob)
   mNormalizedData.array() -= ATeam.array();
 
   // store fluxes
-  CHECK(blob.mHdr->ateam.count() == mFluxes.size());
+  CHECK(int(blob.mHdr->ateam.count()) == mFluxes.size());
   for (int i = 0, j = 0; i < 5; i++)
   {
     if (blob.mHdr->ateam[i])

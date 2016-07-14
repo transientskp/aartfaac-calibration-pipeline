@@ -3,13 +3,19 @@
 #include "../datablob.h"
 
 #include <glog/logging.h>
+#include <iomanip>
+#include <sstream>
 
 DECLARE_double(antsigma);
 DECLARE_double(vissigma);
 
 std::string Flagger::Name()
 {
-  return "Flagger";
+  std::stringstream ss;
+  ss << "Flagger: ";
+  ss << mBlob->mHdr->flagged_dipoles.count();
+  ss << " " << std::fixed << int(mMask.sum());
+  return ss.str();
 }
 
 void Flagger::Initialize()
@@ -22,6 +28,7 @@ void Flagger::Initialize()
 
 void Flagger::Run(DataBlob &b)
 {
+  mBlob = &b;
   using namespace std;
 
   const int N = NUM_BASELINES;
