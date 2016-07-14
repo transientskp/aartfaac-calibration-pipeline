@@ -18,6 +18,8 @@ void DataBlob::Reset(Datum &data)
   mMask.setIdentity();
   mHdr->flagged_dipoles.reset();
   mHdr->ateam.reset();
+  for (int i = 0; i < 5; i++)
+    mHdr->ateam_flux[i] = 0.0f;
 }
 
 Datum DataBlob::Serialize()
@@ -33,13 +35,18 @@ std::string DataBlob::Name()
   char buf[256];
   int fdips = mHdr->flagged_dipoles.count();
   int fchans = mHdr->flagged_channels.count();
-  std::snprintf(buf, 256, "%i %0.1f %s %i %i %s",
+  std::snprintf(buf, 256, "%i %0.2f %s %i %i %0.6f %0.6f %0.6f %0.6f %0.6f",
                 mHdr->subband,
-                mHdr->end_time,
+                CentralTimeMJD(),
                 mHdr->polarization ? "YY" : "XX",
                 fdips,
                 fchans,
-                mHdr->ateam.to_string().c_str());
+                mHdr->ateam_flux[0],
+                mHdr->ateam_flux[1],
+                mHdr->ateam_flux[2],
+                mHdr->ateam_flux[3],
+                mHdr->ateam_flux[4]
+  );
   return buf;
 }
 
@@ -48,9 +55,9 @@ float DataBlob::CentralFrequency()
   return utils::Subband2Frequency(mHdr->subband);
 }
 
-double DataBlob::CentralTime()
+double DataBlob::CentralTimeMJD()
 {
-  return utils::UnixTime2MJD(0.5*(mHdr->start_time+mHdr->end_time)) / 86400.0 + 2400000.5;
+  return utils::UnixTime2MJD(0.5*(mHdr->start_time+mHdr->end_time));
 }
 
 bool DataBlob::IsValid()

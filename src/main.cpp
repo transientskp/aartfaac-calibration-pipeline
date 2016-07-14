@@ -27,7 +27,7 @@ DEFINE_double(vissigma, 3.0, "Sigma used for clipping of visibilities across cha
 
 int main(int argc, char *argv[])
 {
-  FLAGS_logtostderr = 1;
+  FLAGS_alsologtostderr = 1;
   FLAGS_v = 1;
 
   ::google::RegisterFlagValidator(&FLAGS_antsigma, &val::ValidateSigma);

@@ -12,7 +12,7 @@ public:
   void Reset(Datum &datum);
   std::string Name();
   float CentralFrequency();
-  double CentralTime();
+  double CentralTimeMJD();
   bool IsValid();
 
   output_header_t *mHdr;

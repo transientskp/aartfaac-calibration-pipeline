@@ -83,6 +83,7 @@ void Calibrator::Run(DataBlob &blob)
 
   for (int i = 0; i < num_antennas; i++)
   {
+    mAntennaLocalPosReshaped.row(i) = ANT_ITRF().row(I[i]);
     for (int j = 0; j < num_antennas; j++)
     {
       mNormalizedData(i, j) = blob.mACM(I[i], I[j]);
@@ -91,7 +92,7 @@ void Calibrator::Run(DataBlob &blob)
     }
   }
 
-  double time = blob.CentralTime();
+  double time = blob.CentralTimeMJD() / 86400.0 + 2400000.5;
   utils::sunRaDec(time, mRaSources(4), mDecSources(4));
 
   // ========================================================================
@@ -119,7 +120,6 @@ void Calibrator::Run(DataBlob &blob)
     }
   }
   statCal(mNormalizedData, mFrequency, mMask, mGains, mFluxes, mNoiseCovMatrix);
-
   if (!mHasConverged)
     return;
 
@@ -187,10 +187,10 @@ void Calibrator::statCal(const MatrixXcf &inData,
 {
   std::complex<double> i1(0.0, 1.0);
   i1 *= 2.0 * M_PI * inFrequency / C_MS;
-  MatrixXcf A = (-i1 * (mAntennaLocalPosReshaped * mSelection.transpose())).array().exp().cast<std::complex<float> >();
+  MatrixXcf A = (-i1 * (mAntennaLocalPosReshaped * mSelection.transpose())).array().exp().cast<std::complex<float>>();
 
   MatrixXcf KA(A.rows()*A.rows(), A.cols());
-  utils::khatrirao<std::complex<float> >(A.conjugate(), A, KA);
+  utils::khatrirao<std::complex<float>>(A.conjugate(), A, KA);
 
   MatrixXf AA = (A.adjoint() * A).array().abs().square();
 
