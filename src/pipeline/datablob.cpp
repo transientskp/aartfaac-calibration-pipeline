@@ -34,12 +34,18 @@ Datum DataBlob::Serialize()
 
 std::string DataBlob::Name()
 {
-  int fdips = mHdr->flagged_dipoles.count();
-  int fchans = mHdr->flagged_channels.count();
   std::stringstream ss;
   ss << mHdr->subband << " " << std::fixed << std::setprecision(1) << CentralFrequency();
   ss << " " << std::setprecision(2) << CentralTimeMJD();
-  ss << " " << (mHdr->polarization ? "YY" : "XX") << " " << fdips << " " << fchans << mHdr->ateam;
+  ss << " " << (mHdr->polarization ? "YY" : "XX");
+
+  if (IsValid())
+  {
+    int fdips = mHdr->flagged_dipoles.count();
+    int fchans = mHdr->flagged_channels.count();
+    ss << " " << fdips << " " << fchans << mHdr->ateam;
+  }
+
   return ss.str();
 }
 
