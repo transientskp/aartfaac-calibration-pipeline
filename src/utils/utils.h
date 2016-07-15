@@ -244,7 +244,7 @@ void radec2itrf(const Matrix<T, Dynamic, 1> &inRa,
                 const double inJD,
                 Matrix<T, Dynamic, Dynamic> &outItrf)
 {
-  static Matrix<T, 3, 3> tmp_mat;
+  Matrix<T, 3, 3> tmp_mat;
 
   int n = inRa.rows();
   Matrix<T, Dynamic, Dynamic> cartesian_mat(n, 3);

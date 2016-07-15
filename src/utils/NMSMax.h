@@ -78,8 +78,8 @@ Matrix<D, Dynamic, 1> Simplex(
     HowStr[4] = "shrink";
   }
 
-  static const D dirn = -1;
-  static How how = INITIAL;
+  const D dirn = -1;
+  How how = INITIAL;
   int n = x.size();
 
   VecX x0 = x;
