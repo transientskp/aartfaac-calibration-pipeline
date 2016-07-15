@@ -43,7 +43,7 @@ std::string DataBlob::Name()
   {
     int fdips = mHdr->flagged_dipoles.count();
     int fchans = mHdr->flagged_channels.count();
-    ss << " " << fdips << " " << fchans << mHdr->ateam;
+    ss << " " << fdips << " " << fchans << " " << mHdr->ateam;
   }
 
   return ss.str();
