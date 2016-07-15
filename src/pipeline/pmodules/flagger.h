@@ -15,6 +15,7 @@ public:
   virtual void Run(DataBlob &blob);
 
 private:
+  DataBlob *mBlob;
   float mAntSigma;
   float mVisSigma;
   Eigen::MatrixXf mAbs;

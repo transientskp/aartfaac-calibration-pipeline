@@ -16,4 +16,7 @@ public:
 
 private:
   int32_t Index(int i, int j);
+
+  uint32_t mMaxNum;
+  DataBlob *mBlob;
 };

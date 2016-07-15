@@ -1,4 +1,6 @@
 #include <glog/logging.h>
+#include <iomanip>
+#include <sstream>
 #include "datablob.h"
 
 #include "../config.h"
@@ -18,6 +20,8 @@ void DataBlob::Reset(Datum &data)
   mMask.setIdentity();
   mHdr->flagged_dipoles.reset();
   mHdr->ateam.reset();
+  for (int i = 0; i < 5; i++)
+    mHdr->ateam_flux[i] = 0.0f;
 }
 
 Datum DataBlob::Serialize()
@@ -30,17 +34,19 @@ Datum DataBlob::Serialize()
 
 std::string DataBlob::Name()
 {
-  char buf[256];
-  int fdips = mHdr->flagged_dipoles.count();
-  int fchans = mHdr->flagged_channels.count();
-  std::snprintf(buf, 256, "%i %0.1f %s %i %i %s",
-                mHdr->subband,
-                mHdr->end_time,
-                mHdr->polarization ? "YY" : "XX",
-                fdips,
-                fchans,
-                mHdr->ateam.to_string().c_str());
-  return buf;
+  std::stringstream ss;
+  ss << mHdr->subband << " " << std::fixed << std::setprecision(1) << CentralFrequency();
+  ss << " " << std::setprecision(2) << CentralTimeMJD();
+  ss << " " << (mHdr->polarization ? "YY" : "XX");
+
+  if (IsValid())
+  {
+    int fdips = mHdr->flagged_dipoles.count();
+    int fchans = mHdr->flagged_channels.count();
+    ss << " " << fdips << " " << fchans << " " << mHdr->ateam;
+  }
+
+  return ss.str();
 }
 
 float DataBlob::CentralFrequency()
@@ -48,9 +54,9 @@ float DataBlob::CentralFrequency()
   return utils::Subband2Frequency(mHdr->subband);
 }
 
-double DataBlob::CentralTime()
+double DataBlob::CentralTimeMJD()
 {
-  return utils::UnixTime2MJD(0.5*(mHdr->start_time+mHdr->end_time)) / 86400.0 + 2400000.5;
+  return utils::UnixTime2MJD(0.5*(mHdr->start_time+mHdr->end_time));
 }
 
 bool DataBlob::IsValid()
