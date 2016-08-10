@@ -32,11 +32,20 @@ Datum DataBlob::Serialize()
   return d;
 }
 
+inline double GetRealTime()
+{
+  timespec ts; 
+  clock_gettime(CLOCK_REALTIME, &ts);
+  return double(ts.tv_sec) + 1e-9 * double(ts.tv_nsec);
+}
+
+
 std::string DataBlob::Name()
 {
+  auto unix_timestamp = GetRealTime();
   std::stringstream ss;
-  ss << mHdr->subband << " " << std::fixed << std::setprecision(3) << CentralFrequency();
-  ss << " " << std::setprecision(2) << CentralTimeMJD();
+  ss << mHdr->subband << " " << std::fixed << std::setprecision(1) << CentralFrequency();
+  ss << " " << std::setprecision(2) << CentralTimeUnix();
   ss << " " << (mHdr->polarization ? "YY" : "XX");
 
   if (IsValid())
@@ -45,6 +54,10 @@ std::string DataBlob::Name()
     int fchans = mHdr->flagged_channels.count();
     ss << " " << fdips << " " << fchans << " " << mHdr->ateam;
   }
+
+  auto t = unix_timestamp - CentralTimeUnix();
+  if (t < 300.0)
+    ss << " lat " << t << " s";
 
   return ss.str();
 }
@@ -71,7 +84,12 @@ float DataBlob::CentralFrequency()
 
 double DataBlob::CentralTimeMJD()
 {
-  return utils::UnixTime2MJD(0.5*(mHdr->start_time+mHdr->end_time));
+  return utils::UnixTime2MJD(CentralTimeUnix());
+}
+
+double DataBlob::CentralTimeUnix()
+{
+  return 0.5*(mHdr->start_time+mHdr->end_time);
 }
 
 bool DataBlob::IsValid()

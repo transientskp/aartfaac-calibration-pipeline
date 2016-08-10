@@ -13,6 +13,7 @@ public:
   std::string Name();
   float CentralFrequency();
   double CentralTimeMJD();
+  double CentralTimeUnix();
   bool IsValid();
 
   output_header_t *mHdr;
