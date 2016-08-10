@@ -35,7 +35,7 @@ Datum DataBlob::Serialize()
 std::string DataBlob::Name()
 {
   std::stringstream ss;
-  ss << mHdr->subband << " " << std::fixed << std::setprecision(1) << CentralFrequency();
+  ss << mHdr->subband << " " << std::fixed << std::setprecision(3) << CentralFrequency();
   ss << " " << std::setprecision(2) << CentralTimeMJD();
   ss << " " << (mHdr->polarization ? "YY" : "XX");
 
@@ -51,7 +51,22 @@ std::string DataBlob::Name()
 
 float DataBlob::CentralFrequency()
 {
-  return utils::Subband2Frequency(mHdr->subband);
+  int start = 0, end = mHdr->num_channels-1;
+
+  for (int i = 0; i < mHdr->num_channels; i++)
+    if (!mHdr->flagged_channels[i])
+    {
+      start = i;
+      break;
+    }
+  for (int i = mHdr->num_channels-1; i >= 0; i--)
+    if (!mHdr->flagged_channels[i])
+    {
+      end = i;
+      break;
+    }
+  VLOG(1) << start << ", " << end;
+  return utils::Range2Frequency(mHdr->subband, start, end);
 }
 
 double DataBlob::CentralTimeMJD()
