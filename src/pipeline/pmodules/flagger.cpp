@@ -14,7 +14,7 @@ std::string Flagger::Name()
   std::stringstream ss;
   ss << "Flagger: ";
   ss << mBlob->mHdr->flagged_dipoles.count();
-  ss << " " << std::fixed << int(mMask.sum());
+  ss << " " << std::fixed << (mMask.sum()/float(mMask.size()));
   return ss.str();
 }
 
