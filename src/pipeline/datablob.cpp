@@ -26,9 +26,15 @@ void DataBlob::Reset(Datum &data)
 
 Datum DataBlob::Serialize()
 {
-  Datum d(mACM.size() * sizeof(std::complex<float>) + sizeof(output_header_t));
+  Datum d(NUM_BASELINES * sizeof(std::complex<float>) + sizeof(output_header_t));
   memcpy(d.data(), mHdr, sizeof(output_header_t));
-  memcpy(d.data()+sizeof(output_header_t), mACM.data(), mACM.size() * sizeof(std::complex<float>));
+
+  std::complex<float> *c(reinterpret_cast<std::complex<float>*>(d.data()+sizeof(output_header_t)));
+
+  for (int a1 = 0, i = 0; a1 < NUM_ANTENNAS; a1++)
+    for (int a2 = 0; a2 < a1+1; a2++, i++)
+      c[i] = mACM(a1, a2);
+
   return d;
 }
 
