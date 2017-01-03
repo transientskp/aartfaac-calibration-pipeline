@@ -57,7 +57,7 @@ int SigmaClip(Ref<VectorXf> data, Ref<VectorXf> mask, float n = 2.0f)
 
   for (int i = 0; i < MaxIter; i++)
   {
-    auto p = StablePartitionPosition(copy.data(), copy.data() + copy.rows(), [&](auto i)
+    auto p = StablePartitionPosition(copy.data(), copy.data() + copy.rows(), [&](float *i)
     {
       return int(*(mask.data() + (i - copy.data())));
     });
