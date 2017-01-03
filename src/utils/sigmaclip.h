@@ -18,9 +18,11 @@ auto StablePartitionPosition(I f, I l, P p) -> I
 
   auto m = f + (n / 2);
 
-  return rotate(StablePartitionPosition(f, m, p),
-                m,
-                StablePartitionPosition(m, l, p));
+  auto a = StablePartitionPosition(f, m, p);
+  auto b = StablePartitionPosition(m, l, p);
+
+  rotate(a, m, b);
+  return a + (b - m);
 }
 
 
