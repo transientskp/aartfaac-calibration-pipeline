@@ -94,6 +94,11 @@ if (ENABLE_TESTS)
 endif (ENABLE_TESTS)
 
 
+# === Install project.
+install (DIRECTORY ${PROJECT_SOURCE_DIR}/data/ DESTINATION share/aartfaac)
+install (TARGETS aartfaac-calibration RUNTIME DESTINATION bin)
+
+
 # === Status report.
 message (STATUS "")
 message (STATUS " C++:")
