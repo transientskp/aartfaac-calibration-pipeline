@@ -1,6 +1,7 @@
 #include "flagger.h"
 #include "../../config.h"
 #include "../datablob.h"
+#include "../../utils/sigmaclip.h"
 
 #include <glog/logging.h>
 #include <iomanip>
@@ -14,14 +15,13 @@ std::string Flagger::Name()
   std::stringstream ss;
   ss << "Flagger: ";
   ss << mBlob->mHdr->flagged_dipoles.count();
-  ss << " " << std::fixed << (mMask.sum()/float(mMask.size()));
+  ss << " " << mBlob->mHdr->flagged_channels.count();
   return ss.str();
 }
 
 void Flagger::Initialize()
 {
   mAntennas.resize(NUM_ANTENNAS);
-  mAntTmp.resize(NUM_ANTENNAS);
   mAntSigma = FLAGS_antsigma;
   mVisSigma = FLAGS_vissigma;
 }
@@ -33,88 +33,34 @@ void Flagger::Run(DataBlob &b)
 
   const int N = NUM_BASELINES;
   const int M = NUM_CHANNELS;
-  const int HALF_M = M / 2;
 
-  mAbs.resize(M, N);
-  mTmp.resize(M, N);
-  mMask.resize(M, N);
-  mStd.resize(N);
-  mCentroid.resize(N);
-  mMean.resize(N);
-  mMinVal.resize(N);
-  mMaxVal.resize(N);
-  mResult.resize(N);
+  mVisMask = Eigen::MatrixXf::Zero(M, N);
 
+  // map raw data to complex eigen matrix
   Eigen::Map<Eigen::MatrixXcf, Eigen::Aligned>
     raw(reinterpret_cast<std::complex<float>*>(b.mDatum->data()+sizeof(output_header_t)),
          NUM_CHANNELS,
          NUM_BASELINES);
 
-  // Compute statistics only when we have enough channels
-  if (M >= 3)
-  {
-    // Compute power of visibilities
-    mAbs = raw.array().abs();
-    mTmp = mAbs;
+  // collapse to channel vector
+  mChannels = raw.rowwise().mean().array().abs();
+  mChannelMask = Eigen::VectorXf::Ones(M);
+  utils::SigmaClip(mChannels, mChannelMask, mVisSigma);
 
-    // computes the exact median
-    if (M & 1)
-    {
-      for (int i = 0; i < N; i++)
-      {
-        vector<float> row(mTmp.data() + i * M, mTmp.data() + (i + 1) * M);
-        nth_element(row.begin(), row.begin() + HALF_M, row.end());
-        mCentroid(i) = row[HALF_M];
-      }
-    }
-      // nth_element guarantees x_0,...,x_{n-1} < x_n
+  // mask rows that contribute
+  for (int i = 0; i < M; i++)
+  {
+    if (mChannelMask(i))
+      mVisMask.row(i).setOnes();
     else
-    {
-      for (int i = 0; i < N; i++)
-      {
-        vector<float> row(mTmp.data() + i * M, mTmp.data() + (i + 1) * M);
-        nth_element(row.begin(), row.begin() + HALF_M, row.end());
-        mCentroid(i) = row[HALF_M];
-        mCentroid(i) += *max_element(row.begin(), row.begin() + HALF_M);
-        mCentroid(i) *= 0.5f;
-      }
-    }
-
-    // compute the mean
-    mMean = mAbs.colwise().mean();
-
-    // compute std (x) = sqrt ( 1/M SUM_i (x(i) - mean(x))^2 )
-    mStd =
-      (((mAbs.rowwise() - mMean.transpose()).array().square()).colwise().sum() *
-       (1.0f / M))
-        .array()
-        .sqrt();
-
-
-    // compute n sigmas from centroid
-    mStd *= mVisSigma;
-    mMinVal = mCentroid - mStd;
-    mMaxVal = mCentroid + mStd;
-
-    // compute clip mask
-    for (int i = 0; i < N; i++)
-    {
-      mMask.col(i) =
-        (mAbs.col(i).array() > mMinVal(i)).select(Eigen::VectorXf::Ones(M), 0.0f);
-      mMask.col(i) =
-        (mAbs.col(i).array() < mMaxVal(i)).select(Eigen::VectorXf::Ones(M), 0.0f);
-    }
-
-    // apply clip mask to data
-    raw.array() *= mMask.array();
-
-    // compute mean such that we ignore clipped data, this is our final result
-    mResult = raw.colwise().sum().array() / mMask.colwise().sum().array();
+      b.mHdr->flagged_channels[i+1] = true;
   }
-  else
-  {
-    mResult = raw.colwise().mean();
-  }
+
+  // apply clip mask to data
+  raw.array() *= mVisMask.array();
+
+  // compute mean such that we ignore clipped data, this is our final result
+  mResult = raw.colwise().sum().array() / mVisMask.colwise().sum().array();
 
   // construct acm from result
   for (int i = 0, s = 0; i < NUM_ANTENNAS; i++)
@@ -128,40 +74,19 @@ void Flagger::Run(DataBlob &b)
   // clear NaN values
   b.mACM = (b.mACM.array() != b.mACM.array()).select(complex<float>(0.0f, 0.0f), b.mACM);
 
-  // Create "dipoles" by computing the absolute mean of the visibilities
-  mAntennas = b.mACM.array().abs().colwise().mean();
-  for (int a = 0; a < mAntennas.size(); a++)
-  {
-    if (mAntennas(a) <= 1e-5f)
-    {
-      b.mMask.col(a).setOnes();
-      b.mMask.row(a).setOnes();
-      b.mHdr->flagged_dipoles[a] = true;
-    }
-  }
-
-  // Sigma clip the remaining dipoles
-  mAntTmp = mAntennas;
-  float mean = mAntennas.mean();
-  float std = sqrtf((1.0f / mAntennas.size()) *
-                    (mAntennas.array() - mean).array().square().sum());
-  float centroid;
-  vector<float> ant(mAntTmp.data(), mAntTmp.data()+mAntTmp.size());
-  nth_element(ant.begin(), ant.begin() + ant.size()/2, ant.end());
-  centroid = ant[ant.size()/2];
-  centroid += *max_element(ant.begin(), ant.begin() + ant.size()/2);
-  centroid *= 0.5f;
+  // Compute antenna power
+  mAntennas = b.mACM.colwise().mean().array().abs();
+  mAntMask = (mAntennas.array() < 1e-5f).select(Eigen::VectorXf::Zero(NUM_ANTENNAS), Eigen::VectorXf::Ones(NUM_ANTENNAS));
+  utils::SigmaClip(mAntennas, mAntMask, mAntSigma);
 
   // Now we can determine bad antennas
-  std *= mAntSigma;
-  for (int a = 0; a < NUM_ANTENNAS; a++)
+  for (int i = 0; i < NUM_ANTENNAS; i++)
   {
-    if (!b.mHdr->flagged_dipoles[a] &&
-        (mAntennas(a) < (centroid - std) || mAntennas(a) > (centroid + std)))
-    {
-      b.mMask.col(a).setOnes();
-      b.mMask.row(a).setOnes();
-      b.mHdr->flagged_dipoles[a] = true;
-    }
+    if (mAntMask(i))
+      continue;
+
+    b.mHdr->flagged_dipoles[i] = true;
+    b.mMask.col(i).setOnes();
+    b.mMask.row(i).setOnes();
   }
 }

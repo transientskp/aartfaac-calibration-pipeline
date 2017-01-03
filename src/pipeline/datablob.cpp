@@ -78,7 +78,6 @@ float DataBlob::CentralFrequency()
       end = i;
       break;
     }
-  VLOG(1) << start << ", " << end;
   return utils::Range2Frequency(mHdr->subband, start, end);
 }
 
