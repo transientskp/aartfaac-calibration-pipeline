@@ -9,6 +9,7 @@
 #include "utils/validators.h"
 #include "utils/antenna_positions.h"
 #include "pipeline/omodules/diskwriter.h"
+#include "pipeline/omodules/tcpclient.h"
 #include "pipeline/pmodules/flagger.h"
 #include "pipeline/pmodules/calibrator.h"
 #include "pipeline/pmodules/weighter.h"
@@ -56,6 +57,7 @@ int main(int argc, char *argv[])
   pipeline.AddProcessingModule<Flagger>();
   pipeline.AddProcessingModule<Calibrator>();
   pipeline.AddOutputModule<DiskWriter>();
+  pipeline.AddOutputModule<TcpClient>();
   pipeline.Start();
 
   try
@@ -66,7 +68,7 @@ int main(int argc, char *argv[])
   }
   catch (std::exception& e)
   {
-    LOG(ERROR) << "Error: " << e.what();
+    LOG(ERROR) << e.what();
   }
 
   pipeline.Stop();

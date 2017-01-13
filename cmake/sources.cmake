@@ -11,6 +11,7 @@ set (PIPELINE_SOURCES
   src/pipeline/pmodules/calibrator.cpp
   src/pipeline/pmodules/weighter.cpp
   src/pipeline/omodules/diskwriter.cpp
+  src/pipeline/omodules/tcpclient.cpp
   src/server/server.cpp
   src/server/stream_handler.cpp
   src/server/stream.cpp
