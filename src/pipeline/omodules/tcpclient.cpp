@@ -1,6 +1,8 @@
 #include "tcpclient.h"
 
 #include <glog/logging.h>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string.hpp>
 
 DECLARE_string(output);
 
@@ -82,15 +84,24 @@ void TcpClient::Read()
 }
 
 
-void TcpClient::Initialize()
-{
-  mEndPointIterator = mResolver.resolve({ "localhost", "5000" });
+void TcpClient::Initialize() {
+  std::vector<std::string> list, address;
+  boost::split(list, FLAGS_output, boost::is_any_of(","));
+  for (auto &s : list)
+  {
+    if (s.substr(0, 3) == "tcp")
+    {
+      boost::split(address, s, boost::is_any_of(":"));
+      break;
+    }
+  }
+  mEndPointIterator = mResolver.resolve({ address[1], address[2] });
   boost::asio::async_connect(mSocket, mEndPointIterator,
                              [this](boost::system::error_code ec, tcp::resolver::iterator)
                              {
                                if (!ec)
                                {
-                                 VLOG(1) << "Connected to localhost:5000";
+                                 VLOG(1) << "Connected to " << mSocket.remote_endpoint().address() << ":" << mSocket.remote_endpoint().port();
                                  Read();
                                }
                                else
@@ -107,7 +118,7 @@ void TcpClient::Close()
 {
   mIoService.post([this]()
                   {
+                    VLOG(1) << "Closing " << mSocket.remote_endpoint().address() << ":" << mSocket.remote_endpoint().port();
                     mSocket.close();
-                    VLOG(1) << "Closed localhost:5000";
                   });
 }

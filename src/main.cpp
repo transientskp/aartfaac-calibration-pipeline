@@ -1,6 +1,7 @@
 #include <glog/logging.h>
 #include <boost/asio.hpp>
 #include <pipeline/pipeline.h>
+#include <boost/algorithm/string.hpp>
 
 #include "version.h"
 #include "config.h"
@@ -19,7 +20,7 @@
 DEFINE_int32(nthreads, 2, "Number of pipeline threads");
 DEFINE_int32(port, 4000, "Port to listen on for incoming data");
 DEFINE_int32(buffer, 20, "Ringbuffer size in number of seconds");
-DEFINE_string(output, "", "Output location e.g. 'tcp:127.0.0.1:5000', 'file:/tmp/calibrated.vis'");
+DEFINE_string(output, "", "Output locations e.g. 'tcp:127.0.0.1:5000,file:/tmp/calibrated.vis'");
 DEFINE_string(antpos, "", "Antenna positions filename");
 DEFINE_int32(subband, -1, "Lofar subband that defines the frequency of incoming data");
 DEFINE_string(channels, "0-62", "List of channel ranges to use e.g. '0-10,12-30,31-31' (inclusive)");
@@ -56,8 +57,17 @@ int main(int argc, char *argv[])
   pipeline.AddProcessingModule<Weighter>();
   pipeline.AddProcessingModule<Flagger>();
   pipeline.AddProcessingModule<Calibrator>();
-  pipeline.AddOutputModule<DiskWriter>();
-  pipeline.AddOutputModule<TcpClient>();
+
+  std::vector<std::string> list;
+  boost::split(list, FLAGS_output, boost::is_any_of(","));
+
+  for (auto &s : list)
+  {
+    if (s.substr(0, 4) == "file")
+      pipeline.AddOutputModule<DiskWriter>();
+    else if (s.substr(0, 3) == "tcp")
+      pipeline.AddOutputModule<TcpClient>();
+  }
   pipeline.Start();
 
   try

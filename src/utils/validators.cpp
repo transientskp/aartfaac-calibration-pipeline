@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <fstream>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string.hpp>
 
 namespace val
 {
@@ -63,7 +65,16 @@ bool ValidateChannels(const char *flagname, const std::string &value)
 bool ValidateOutput(const char *flagname, const std::string &value)
 {
   (void) flagname;
-  return value.size() > 5 && ("tcp:" == value.substr(0, 4) || value.substr(0, 5) == "file:");
+  std::vector<std::string> list;
+  boost::split(list, value, boost::is_any_of(","));
+
+  if (list.size() > 2)
+    return false;
+
+  bool valid = true;
+  for (auto &s : list)
+    valid = valid && s.size() > 5 && ("tcp:" == s.substr(0, 4) || s.substr(0, 5) == "file:");
+  return valid;
 }
 
 bool ValidateFile(const char *flagname, const std::string &value)
