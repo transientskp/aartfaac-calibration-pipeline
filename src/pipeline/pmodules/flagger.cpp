@@ -88,5 +88,7 @@ void Flagger::Run(DataBlob &b)
     b.mHdr->flagged_dipoles[i] = true;
     b.mMask.col(i).setOnes();
     b.mMask.row(i).setOnes();
+    b.mACM.col(i).setZero();
+    b.mACM.row(i).setZero();
   }
 }
