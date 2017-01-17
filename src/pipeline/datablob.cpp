@@ -99,5 +99,5 @@ double DataBlob::CentralTimeUnix()
 
 bool DataBlob::IsValid()
 {
-  return mHdr->flagged_dipoles.count() < NUM_ANTENNAS*0.2;
+  return mHdr->flagged_dipoles.count() < NUM_ANTENNAS*0.8;
 }
