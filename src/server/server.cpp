@@ -12,7 +12,8 @@ Server::Server(boost::asio::io_service &io_service, Pipeline<DataBlob> &pipeline
   mSignals.add(SIGTERM);
   mSignals.add(SIGQUIT);
   DoAwaitStop();
-
+  size_t size = 64*1024*1024;
+  setsockopt(mSocket.native(), SOL_SOCKET, SO_RCVBUF, &size, sizeof size);
   VLOG(1) << "Listening on port " << port;
   Listen();
 }
