@@ -13,7 +13,7 @@ Stream::Stream(tcp::socket socket, StreamHandler &handler):
   mSocket(std::move(socket)),
   mHandler(handler)
 {
-  mBuffer.resize(1024);
+  mBuffer.resize(16*1024);
   mData.resize(NUM_BASELINES*NUM_POLARIZATIONS*NUM_CHANNELS*sizeof(std::complex<float>) + sizeof(input_header_t), 0);
   mXX.resize(NUM_BASELINES*NUM_CHANNELS*sizeof(std::complex<float>) + sizeof(output_header_t), 0);
   mYY.resize(NUM_BASELINES*NUM_CHANNELS*sizeof(std::complex<float>) + sizeof(output_header_t), 0);
