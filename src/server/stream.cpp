@@ -14,7 +14,9 @@ Stream::Stream(tcp::socket socket, StreamHandler &handler):
   mSocket(std::move(socket)),
   mHandler(handler)
 {
-  // 41616*63*2*8 must divide into buffer and buffer must divide into 64
+  //  41616*63*2*8 must divide into buffer and buffer must divide into 64 for 288 antennas
+  // 166176*63*2*8 must divide into buffer and buffer must divide into 64 for 576 antennas
+  // mBuffer.resize(332352);
   mBuffer.resize(166464);
   mXX.resize(NUM_BASELINES*NUM_CHANNELS*sizeof(std::complex<float>) + sizeof(output_header_t), 0);
   mYY.resize(NUM_BASELINES*NUM_CHANNELS*sizeof(std::complex<float>) + sizeof(output_header_t), 0);
@@ -66,7 +68,7 @@ void Stream::Parse(std::size_t length)
   __m256i *yy = reinterpret_cast<__m256i*>(mYY.data() + (mBytesRead-sizeof(output_header_t)) / 2 + sizeof(output_header_t));
 
   __m256i a, b, hi, lo;
-  for (int i = 0; i < 5202; i+=2)
+  for (int i = 0, n = mBuffer.size()/32; i < n; i += 2)
   {
     a = _mm256_stream_load_si256(src + i);
     a = _mm256_permute4x64_epi64(a, 0x1b);
