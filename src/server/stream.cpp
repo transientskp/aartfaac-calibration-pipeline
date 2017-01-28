@@ -67,17 +67,17 @@ void Stream::Parse(std::size_t length)
   __m256i *xx = reinterpret_cast<__m256i*>(mXX.data() + (mBytesRead-sizeof(output_header_t)) / 2 + sizeof(output_header_t));
   __m256i *yy = reinterpret_cast<__m256i*>(mYY.data() + (mBytesRead-sizeof(output_header_t)) / 2 + sizeof(output_header_t));
 
-  __m256i a, b, hi, lo;
+  __m256i a, b, c;
   for (int i = 0, n = mBuffer.size()/32; i < n; i += 2)
   {
     a = _mm256_stream_load_si256(src + i);
-    a = _mm256_permute4x64_epi64(a, 0x1b);
     b = _mm256_stream_load_si256(src + i + 1);
-    b = _mm256_permute4x64_epi64(b, 0x1b);
-    hi = _mm256_unpackhi_epi64(a, b);
-    lo = _mm256_unpacklo_epi64(a, b);
-    _mm256_stream_si256(xx+(i>>1), hi);
-    _mm256_stream_si256(yy+(i>>1), lo);
+    c = _mm256_unpacklo_epi64(a, b);
+    c = _mm256_permute4x64_epi64(c, 0xd8);
+    _mm256_stream_si256(xx + (i >> 1), c);
+    c = _mm256_unpackhi_epi64(a, b);
+    c = _mm256_permute4x64_epi64(c, 0xd8);
+    _mm256_stream_si256(yy + (i >> 1), c);
   }
   mBytesRead += length;
 
