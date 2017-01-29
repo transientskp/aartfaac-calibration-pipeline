@@ -57,31 +57,31 @@ void Stream::Parse(std::size_t length)
   if (length == sizeof(input_header_t))
   {
     memcpy(&mHeader, mBuffer.data(), sizeof(input_header_t));
-    mBytesRead = sizeof(input_header_t);
+    mBytesRead = 0;
     Read(mBuffer.size());
     return;
   }
 
   // here we de-interleave the XX and YY polarization using AVX instructions
   const __m256i *src = reinterpret_cast<const __m256i*>(mBuffer.data());
-  __m256i *xx = reinterpret_cast<__m256i*>(mXX.data() + (mBytesRead-sizeof(output_header_t)) / 2 + sizeof(output_header_t));
-  __m256i *yy = reinterpret_cast<__m256i*>(mYY.data() + (mBytesRead-sizeof(output_header_t)) / 2 + sizeof(output_header_t));
+  __m256i *xx = reinterpret_cast<__m256i*>(mXX.data() + mBytesRead/2 + sizeof(output_header_t));
+  __m256i *yy = reinterpret_cast<__m256i*>(mYY.data() + mBytesRead/2 + sizeof(output_header_t));
 
   __m256i a, b, c;
-  for (int i = 0, n = mBuffer.size()/32; i < n; i += 2)
+  for (int i = 0, j = 0, n = mBuffer.size()/32; i < n; i += 2, j++)
   {
     a = _mm256_stream_load_si256(src + i);
     b = _mm256_stream_load_si256(src + i + 1);
     c = _mm256_unpacklo_epi64(a, b);
     c = _mm256_permute4x64_epi64(c, 0xd8);
-    _mm256_stream_si256(xx + (i >> 1), c);
+    _mm256_stream_si256(xx + j, c);
     c = _mm256_unpackhi_epi64(a, b);
     c = _mm256_permute4x64_epi64(c, 0xd8);
-    _mm256_stream_si256(yy + (i >> 1), c);
+    _mm256_stream_si256(yy + j, c);
   }
   mBytesRead += length;
 
-  if (mBytesRead >= NUM_BASELINES*NUM_POLARIZATIONS*NUM_CHANNELS*8 + sizeof(input_header_t))
+  if (mBytesRead >= NUM_BASELINES*NUM_POLARIZATIONS*NUM_CHANNELS*8)
   {
     CHECK(mHeader.magic == INPUT_MAGIC) << "Invalid magic!";
     // copy header to pols
