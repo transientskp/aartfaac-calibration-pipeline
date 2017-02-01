@@ -14,8 +14,10 @@ Stream::Stream(tcp::socket socket, StreamHandler &handler):
   mSocket(std::move(socket)),
   mHandler(handler)
 {
-  //  41616*63*2*8 must divide into buffer and buffer must divide into 64 for 288 antennas
-  // 166176*63*2*8 must divide into buffer and buffer must divide into 64 for 576 antennas
+  // create a buffer size b such that:
+  //   n = 0 (mod b) and b = 0 (mod m), where
+  //   n = 41616*63*2*8 for 288 antennas and n = 166176*63*2*8 for 576 antennas
+  //   b = 64
   // mBuffer.resize(332352);
   mBuffer.resize(166464);
   mXX.resize(NUM_BASELINES*NUM_CHANNELS*sizeof(std::complex<float>) + sizeof(output_header_t), 0);
@@ -34,7 +36,6 @@ void Stream::Start()
 void Stream::Read(int n)
 {
   auto self(shared_from_this());
-
   boost::asio::async_read(mSocket, boost::asio::buffer(mBuffer.data(), n),
                           [this, self](boost::system::error_code ec, std::size_t length)
                           {
@@ -63,6 +64,9 @@ void Stream::Parse(std::size_t length)
   }
 
   // here we de-interleave the XX and YY polarization using AVX instructions
+  // src: [XX0 YY1 XX2 YY3 XX4 YY5 XX6 YY7 ...]
+  // xx:  [XX0 XX2 XX4 XX6 ...]
+  // yy:  [YY1 YY3 YY5 YY7 ...]
   const __m256i *src = reinterpret_cast<const __m256i*>(mBuffer.data());
   __m256i *xx = reinterpret_cast<__m256i*>(mXX.data() + mBytesRead/2 + sizeof(output_header_t));
   __m256i *yy = reinterpret_cast<__m256i*>(mYY.data() + mBytesRead/2 + sizeof(output_header_t));
