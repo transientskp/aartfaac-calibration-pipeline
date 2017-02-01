@@ -27,9 +27,6 @@ void Server::Listen()
 
                            if (!ec)
                            {
-                             size_t size = 64*1024*1024;
-                             boost::asio::socket_base::receive_buffer_size option(size);
-                             mSocket.set_option(option);
                              mStreamHandler.Start(std::make_shared<Stream>(std::move(mSocket), mStreamHandler));
                            }
                            else
