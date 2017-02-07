@@ -41,10 +41,12 @@
 #
 # This script processes the AntennaFieldCSXXX.conf files to generate output
 # appropriate for AARTFAAC. Specify the type of antenna (LBA, HBA) and the
-# range in use (0-48 for LBA_INNER, 48-96 for LBA_OUTER) on the command line,
-# together with one or more AntennaField files. E.g.:
+# range in use (0-48 for LBA_INNER, 48-96 for LBA_OUTER, 0-96 for
+# LBA_SPARSE_EVEN, 1-96 for LBA_SPARSE_ODD) on the command line, together with
+# one or more AntennaField files. E.g.:
 #
 #   $ python antennaset.py LBA 0 48 AntennaFieldCS002.conf AntennaFieldCS003.conf
+#   $ python antennaset.py LBA 1 96 AntennaFieldCS002.conf AntennaFieldCS003.conf
 
 import sys
 
@@ -55,7 +57,10 @@ class AntennaSet(object):
         lba_start = lines.index(name)
         data_start = lba_start + 3
         offset = [float(x) for x in lines[lba_start+1].split()[2:5]]
-        for line in lines[data_start + start_ant:data_start + end_ant]:
+        step = 1
+        if end_ant - start_ant > 48:
+            step = 2
+        for line in lines[data_start + start_ant:data_start + end_ant:step]:
             x, y, z = [float(x) for x in line.split()[0:3]]
             self.positions.append(
                 [offset[0] + x, offset[1] + y, offset[2] + z]
