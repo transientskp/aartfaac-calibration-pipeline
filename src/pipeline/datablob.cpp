@@ -63,7 +63,7 @@ std::string DataBlob::Name()
 
   auto t = unix_timestamp - CentralTimeUnix();
   if (t < 300.0)
-    ss << " lat " << t << " s";
+    ss << " " << t;
 
   return ss.str();
 }

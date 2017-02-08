@@ -15,11 +15,11 @@ class Stream: public std::enable_shared_from_this<Stream>
 public:
   Stream(const Stream&) = delete;
   Stream& operator=(const Stream&) = delete;
-
   explicit Stream(tcp::socket socket, StreamHandler &handler);
 
   void Start();
   void Stop();
+  static void Deinterleave(const Datum &src, Datum &xx, Datum &yy, const int start);
 
 private:
   void Read(int n);
@@ -35,6 +35,7 @@ private:
   uint32_t mBytesRead;
   uint64_t mTotalBytesRead;
   double mTime;
+
 };
 
 typedef std::shared_ptr<Stream> StreamPtr;

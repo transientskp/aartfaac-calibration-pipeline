@@ -18,4 +18,12 @@ set (PIPELINE_SOURCES
 )
 
 # === Test sources
+set (TESTS
+  stream_test
+)
 
+set (stream_test_SOURCES
+  src/server/stream.cpp
+  src/server/stream_handler.cpp
+  src/server/test/stream_test.cpp
+)

@@ -88,6 +88,7 @@ if (ENABLE_TESTS)
         ${GLOG_LIBRARIES}
         ${GTEST_BOTH_LIBRARIES}
         ${CMAKE_THREAD_LIBS_INIT}
+        ${Boost_LIBRARIES}
       )
       add_test (${TEST} ${TEST})
   endforeach (TEST)

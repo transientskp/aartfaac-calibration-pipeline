@@ -63,26 +63,7 @@ void Stream::Parse(std::size_t length)
     return;
   }
 
-  // here we de-interleave the XX and YY polarization using AVX instructions
-  // src: [XX0 YY1 XX2 YY3 XX4 YY5 XX6 YY7 ...]
-  // xx:  [XX0 XX2 XX4 XX6 ...]
-  // yy:  [YY1 YY3 YY5 YY7 ...]
-  const __m256i *src = reinterpret_cast<const __m256i*>(mBuffer.data());
-  __m256i *xx = reinterpret_cast<__m256i*>(mXX.data() + mBytesRead/2 + sizeof(output_header_t));
-  __m256i *yy = reinterpret_cast<__m256i*>(mYY.data() + mBytesRead/2 + sizeof(output_header_t));
-
-  __m256i a, b, c;
-  for (int i = 0, j = 0, n = mBuffer.size()/32; i < n; i += 2, j++)
-  {
-    a = _mm256_stream_load_si256(src + i);
-    b = _mm256_stream_load_si256(src + i + 1);
-    c = _mm256_unpacklo_epi64(a, b);
-    c = _mm256_permute4x64_epi64(c, 0xd8);
-    _mm256_stream_si256(xx + j, c);
-    c = _mm256_unpackhi_epi64(a, b);
-    c = _mm256_permute4x64_epi64(c, 0xd8);
-    _mm256_stream_si256(yy + j, c);
-  }
+  Stream::Deinterleave(mBuffer, mXX, mYY, mBytesRead/16);
   mBytesRead += length;
 
   if (mBytesRead >= NUM_BASELINES*NUM_POLARIZATIONS*NUM_CHANNELS*8)
@@ -103,16 +84,54 @@ void Stream::Parse(std::size_t length)
 
     hdr.polarization = 0;
     memcpy(mXX.data(), &hdr, sizeof(hdr));
+    mHandler.mPipeline.SwapAndProcess(mXX);
+
     hdr.polarization = 1;
     memcpy(mYY.data(), &hdr, sizeof(hdr));
-
-    mHandler.mPipeline.SwapAndProcess(mXX);
     mHandler.mPipeline.SwapAndProcess(mYY);
 
     Read(sizeof(input_header_t));
   }
   else
     Read(mBuffer.size());
+}
+
+
+void Stream::Deinterleave(const Datum &src, Datum &xx, Datum &yy, const int start)
+{
+  // here we de-interleave the XX and YY polarization
+  // src: [XX0 YY1 XX2 YY3 XX4 YY5 XX6 YY7 ...]
+  // xx:  [XX0 XX2 XX4 XX6 ...]
+  // yy:  [YY1 YY3 YY5 YY7 ...]
+
+#ifdef __AVX2__
+  const __m256i *s = reinterpret_cast<const __m256i*>(src.data());
+  __m256i *x = reinterpret_cast<__m256i*>(xx.data() + sizeof(output_header_t) + start * 8);
+  __m256i *y = reinterpret_cast<__m256i*>(yy.data() + sizeof(output_header_t) + start * 8);
+
+  __m256i a, b, c;
+  for (int i = 0, j = 0, n = src.size()/32; i < n; i += 2, j++)
+  {
+    a = _mm256_stream_load_si256(s + i);
+    b = _mm256_stream_load_si256(s + i + 1);
+    c = _mm256_unpacklo_epi64(a, b);
+    c = _mm256_permute4x64_epi64(c, 0xd8);
+    _mm256_stream_si256(x + j, c);
+    c = _mm256_unpackhi_epi64(a, b);
+    c = _mm256_permute4x64_epi64(c, 0xd8);
+    _mm256_stream_si256(y + j, c);
+  }
+#else
+  const uint64_t *s = reinterpret_cast<const uint64_t*>(src.data());
+  uint64_t *x = reinterpret_cast<uint64_t*>(xx.data() + sizeof(output_header_t));
+  uint64_t *y = reinterpret_cast<uint64_t*>(yy.data() + sizeof(output_header_t));
+
+  for (int i = 0, j = start, n = src.size()/8; i < n; i += 2, j++)
+  {
+    x[j] = s[i];
+    y[j] = s[i+1];
+  }
+#endif
 }
 
 
