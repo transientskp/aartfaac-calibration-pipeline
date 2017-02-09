@@ -18,6 +18,7 @@
 #define USAGE "AARTFAAC Calibration Pipeline"
 
 DEFINE_int32(nthreads, 2, "Number of pipeline threads");
+DEFINE_int32(antcfg, 0, "0=LBA_OUTER, 1=LBA_INNER, 2=LBA_SPARSE_EVEN, 3=LBA_SPARSE_ODD");
 DEFINE_int32(port, 4000, "Port to listen on for incoming data");
 DEFINE_int32(buffer, 20, "Ringbuffer size in number of seconds");
 DEFINE_string(output, "", "Output locations e.g. 'tcp:127.0.0.1:5000,file:/tmp/calibrated.vis'");
@@ -40,6 +41,7 @@ int main(int argc, char *argv[])
   ::google::RegisterFlagValidator(&FLAGS_channels, &val::ValidateChannels);
   ::google::RegisterFlagValidator(&FLAGS_output, &val::ValidateOutput);
   ::google::RegisterFlagValidator(&FLAGS_antpos, &val::ValidateFile);
+  ::google::RegisterFlagValidator(&FLAGS_antcfg, &val::ValidateAntCfg);
 
 
   ::google::SetUsageMessage(USAGE);

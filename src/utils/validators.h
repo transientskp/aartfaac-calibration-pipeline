@@ -11,4 +11,5 @@ bool ValidateNumThreads(const char *flagname, const int value);
 bool ValidateChannels(const char *flagname, const std::string &value);
 bool ValidateSigma(const char *flagname, const double value);
 bool ValidateFile(const char *flagname, const std::string &value);
+bool ValidateAntCfg(const char *flagname, const int value);
 }

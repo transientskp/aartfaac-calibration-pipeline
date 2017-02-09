@@ -26,7 +26,8 @@ private:
   void Parse(std::size_t length);
 
   tcp::socket mSocket;
-  input_header_t mHeader;
+  input_header_t mInputHdr;
+  output_header_t mOutputHdr;
 
   Datum mBuffer;
   Datum mXX;

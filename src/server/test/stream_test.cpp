@@ -5,7 +5,8 @@
 using namespace ::testing;
 using boost::asio::ip::tcp;
 
-DEFINE_int32(subband, -1, "Lofar subband that defines the frequency of incoming data");
+DEFINE_int32(subband, 300, "Lofar subband that defines the frequency of incoming data");
+DEFINE_int32(antcfg, 0, "0=LBA_OUTER, 1=LBA_INNER, 2=LBA_SPARSE_EVEN, 3=LBA_SPARSE_ODD");
 
 class StreamTest : public Test {
 

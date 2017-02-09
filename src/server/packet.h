@@ -22,7 +22,7 @@ struct output_header_t
   double start_time;                ///< start time (unix)
   double end_time;                  ///< end time (unix)
   int32_t subband;                  ///< lofar subband
-  int32_t num_dipoles;              ///< number of dipoles (288 or 576)
+  int32_t num_antennas;             ///< number of antennas (288 or 576)
   int32_t polarization;             ///< XX=0, YY=1
   int32_t num_channels;             ///< number of channels (<= 64)
   float ateam_flux[5];              ///< Ateam fluxes (CasA, CygA, Tau, Vir, Sun)
@@ -30,7 +30,8 @@ struct output_header_t
   std::bitset<64> flagged_channels; ///< bitset of flagged channels (8 byte)
   std::bitset<576> flagged_dipoles; ///< bitset of flagged dipoles (72 byte)
   uint32_t weights[78];             ///< stationweights n*(n+1)/2, n in {6, 12}
-  uint8_t pad[48];                  ///< 512 byte block
+  uint32_t antenna_config;          ///< 0=LBA_OUTER, 1=LBA_INNER, 2=LBA_SPARSE_EVEN, 3=LBA_SPARSE_ODD
+  uint8_t pad[44];                  ///< 512 byte block
 };
 
 static_assert(sizeof(input_header_t) == 512, "header must be 512 bytes");

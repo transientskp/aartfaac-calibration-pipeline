@@ -33,6 +33,12 @@ bool ValidateSigma(const char *flagname, const double value)
   return value > 0.0;
 }
 
+bool ValidateAntCfg(const char *flagname, const int value)
+{
+  (void) flagname;
+  return value >= 0 && value <= 3;
+}
+
 bool ValidateChannels(const char *flagname, const std::string &value)
 {
   (void) flagname;
