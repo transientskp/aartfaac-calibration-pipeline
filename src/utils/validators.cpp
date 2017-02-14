@@ -21,10 +21,14 @@ bool ValidateSubband(const char *flagname, const int value)
   return value >= 0 && value < 512;
 }
 
-bool ValidateNumThreads(const char *flagname, const int value)
+bool ValidateAffinity(const char *flagname, const std::string &value)
 {
   (void) flagname;
-  return value > 0;
+  if (value.empty())
+    return false;
+
+  auto v = utils::ParseAffinity(value);
+  return v.size() >= 2;
 }
 
 bool ValidateSigma(const char *flagname, const double value)

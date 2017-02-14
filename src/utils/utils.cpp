@@ -52,6 +52,32 @@ int PopCount(uint64_t x)
   return pop;
 }
 
+std::vector<int> ParseAffinity(const std::string &value)
+{
+  std::vector<int> affinity;
+  std::string num;
+  int v;
+
+  for (auto &c : value)
+  {
+    switch(c)
+    {
+      case ',':
+        v = std::atoi(num.c_str());
+        num = "";
+        affinity.push_back(v);
+        break;
+      default:
+        if (std::isdigit(c))
+          num += c;
+        break;
+    }
+  }
+
+  affinity.push_back(std::atoi(num.c_str()));
+  return affinity;
+}
+
 std::vector<std::pair<int,int>> ParseChannels(const std::string &value)
 {
   std::vector<std::pair<int,int>> channels;

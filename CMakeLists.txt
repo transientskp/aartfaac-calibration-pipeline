@@ -50,7 +50,6 @@ find_package (GFlags REQUIRED)
 find_package (Glog REQUIRED)
 find_package (Threads REQUIRED)
 find_package (Eigen3 3.1 REQUIRED)
-find_package (Casacore REQUIRED)
 find_package (Pipeline REQUIRED)
 
 include_directories (
@@ -58,7 +57,6 @@ include_directories (
   ${GFLAGS_INCLUDE_DIRS} SYSTEM
   ${GLOG_INCLUDE_DIRS} SYSTEM
   ${EIGEN3_INCLUDE_DIR} SYSTEM
-  ${CASACORE_INCLUDES} SYSTEM
   ${PIPELINE_INCLUDES} SYSTEM
 )
 
@@ -71,7 +69,6 @@ target_link_libraries (aartfaac-calibration
   ${GFLAGS_LIBRARIES}
   ${GLOG_LIBRARIES}
   ${CMAKE_THREAD_LIBS_INIT}
-  ${CASACORE_LIBRARIES}
 )
 
 

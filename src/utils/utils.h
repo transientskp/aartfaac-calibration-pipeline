@@ -97,6 +97,7 @@ void matrix2stderr(const Eigen::DenseBase<Derived> &M, const char *name, const i
 int PopCount(uint64_t x);
 
 std::vector<std::pair<int,int>> ParseChannels(const std::string &value);
+std::vector<int> ParseAffinity(const std::string &value);
 
 /**
  * @brief MJDs2JD

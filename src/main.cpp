@@ -17,7 +17,7 @@
 
 #define USAGE "AARTFAAC Calibration Pipeline"
 
-DEFINE_int32(nthreads, 2, "Number of pipeline threads");
+DEFINE_string(affinity, "", "Set cpu affinity. First id is input, last id is output and middle ids for processing e.g. 0,3,4,7");
 DEFINE_int32(antcfg, 0, "0=LBA_OUTER, 1=LBA_INNER, 2=LBA_SPARSE_EVEN, 3=LBA_SPARSE_ODD");
 DEFINE_int32(port, 4000, "Port to listen on for incoming data");
 DEFINE_int32(buffer, 20, "Ringbuffer size in number of seconds");
@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
   ::google::RegisterFlagValidator(&FLAGS_vissigma, &val::ValidateSigma);
   ::google::RegisterFlagValidator(&FLAGS_subband, &val::ValidateSubband);
   ::google::RegisterFlagValidator(&FLAGS_port, &val::ValidatePort);
-  ::google::RegisterFlagValidator(&FLAGS_nthreads, &val::ValidateNumThreads);
+  ::google::RegisterFlagValidator(&FLAGS_affinity, &val::ValidateAffinity);
   ::google::RegisterFlagValidator(&FLAGS_channels, &val::ValidateChannels);
   ::google::RegisterFlagValidator(&FLAGS_output, &val::ValidateOutput);
   ::google::RegisterFlagValidator(&FLAGS_antpos, &val::ValidateFile);
@@ -52,7 +52,13 @@ int main(int argc, char *argv[])
 
   AntennaPositions::CreateInstance(FLAGS_antpos);
 
-  Pipeline<DataBlob> pipeline(FLAGS_nthreads);
+  auto affinity = utils::ParseAffinity(FLAGS_affinity);
+  cpu_set_t cpuset;
+  CPU_ZERO(&cpuset);
+  CPU_SET(affinity.back(), &cpuset);
+  int rc = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
+  CHECK(rc == 0) << "pthread_setaffinity_np failed for cpu " << affinity.back();
+  Pipeline<DataBlob> pipeline(std::vector<int>(affinity.begin()+1, affinity.end()));
   pipeline.CreateMemoryPool(
       NUM_BASELINES*NUM_CHANNELS*sizeof(std::complex<float>) + sizeof(output_header_t),
       FLAGS_buffer*2);
