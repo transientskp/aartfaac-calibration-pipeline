@@ -22,8 +22,9 @@ std::string Weighter::Name()
   return ss.str();
 }
 
-void Weighter::Initialize()
+void Weighter::Initialize(DataBlob &blob)
 {
+  (void) blob;
 }
 
 void Weighter::Run(DataBlob &b)

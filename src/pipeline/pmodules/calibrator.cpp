@@ -20,8 +20,9 @@ std::string Calibrator::Name()
   return ss.str();
 }
 
-void Calibrator::Initialize()
+void Calibrator::Initialize(DataBlob &blob)
 {
+  (void) blob;
   mAntennaLocalPosReshaped = ANT_ITRF();
 
   mMask.resize(NUM_ANTENNAS, NUM_ANTENNAS);

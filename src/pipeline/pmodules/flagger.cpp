@@ -19,8 +19,9 @@ std::string Flagger::Name()
   return ss.str();
 }
 
-void Flagger::Initialize()
+void Flagger::Initialize(DataBlob &blob)
 {
+  (void) blob;
   mAntennas.resize(NUM_ANTENNAS);
   mAntSigma = FLAGS_antsigma;
   mVisSigma = FLAGS_vissigma;

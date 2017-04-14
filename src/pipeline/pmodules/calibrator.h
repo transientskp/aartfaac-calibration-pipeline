@@ -14,7 +14,7 @@ public:
   Calibrator() {}
 
   virtual std::string Name();
-  virtual void Initialize();
+  virtual void Initialize(DataBlob &blob);
   virtual void Run(DataBlob &blob);
 
 private:
