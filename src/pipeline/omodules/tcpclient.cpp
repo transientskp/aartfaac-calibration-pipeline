@@ -1,10 +1,12 @@
 #include "tcpclient.h"
+#include "../../utils/utils.h"
 
 #include <glog/logging.h>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string.hpp>
 
 DECLARE_string(output);
+DECLARE_string(affinity);
 
 std::string TcpClient::Name()
 {
@@ -110,7 +112,15 @@ void TcpClient::Initialize() {
                                }
                              });
 
-  mThread = std::thread([this]() {mIoService.run();} );
+  mThread = std::thread([this]() {
+    auto affinity = utils::ParseAffinity(FLAGS_affinity);
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(affinity.back(), &cpuset);
+    int rc = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
+    CHECK(rc == 0) << "pthread_setaffinity_np failed for cpu " << affinity.back();
+    mIoService.run();
+  } );
 }
 
 
@@ -118,7 +128,11 @@ void TcpClient::Close()
 {
   mIoService.post([this]()
                   {
-                    VLOG(1) << "Closing " << mSocket.remote_endpoint().address() << ":" << mSocket.remote_endpoint().port();
+                    if (mSocket.available())
+                      VLOG(1) << "closing " << mSocket.remote_endpoint().address() << ":" << mSocket.remote_endpoint().port();
+                    else
+                      VLOG(1) << "server disconnected";
+
                     mSocket.close();
                   });
 }
