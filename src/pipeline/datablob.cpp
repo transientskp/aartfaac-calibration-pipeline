@@ -12,7 +12,7 @@ DataBlob::DataBlob()
   mMask.resize(NUM_ANTENNAS, NUM_ANTENNAS);
 }
 
-void DataBlob::Reset(Datum &data)
+void DataBlob::Prepare(Datum &data)
 {
   mDatum = &data;
   mHdr = reinterpret_cast<output_header_t*>(data.data());
@@ -22,6 +22,11 @@ void DataBlob::Reset(Datum &data)
   mHdr->ateam.reset();
   for (int i = 0; i < 5; i++)
     mHdr->ateam_flux[i] = 0.0f;
+}
+
+void DataBlob::Clear(Datum &datum)
+{
+  memset(datum.data(), 0, datum.size());
 }
 
 Datum DataBlob::Serialize()

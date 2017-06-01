@@ -9,7 +9,8 @@ class DataBlob
 public:
   DataBlob();
   Datum Serialize();
-  void Reset(Datum &datum);
+  void Prepare(Datum &datum);
+  void Clear(Datum &datum);
   std::string Name();
   float CentralFrequency();
   double CentralTimeMJD();
