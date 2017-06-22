@@ -15,7 +15,11 @@
 #include "pipeline/pmodules/calibrator.h"
 #include "pipeline/pmodules/weighter.h"
 
-#define USAGE "AARTFAAC Calibration Pipeline"
+#define USAGE "[OPTION]..."
+#define VERSION_STRING CALIBRATION_VERSION " (" CALIBRATION_BUILD ")\n\n" \
+  "    Compiler: " CALIBRATION_COMPILER "\n" \
+  "    Flags:    " CALIBRATION_FLAGS "\n" \
+  "    Date:     " __DATE__ "\n"
 
 DEFINE_string(affinity, "", "Set cpu affinity. First id is input, last id is output and middle ids for processing e.g. 0,3,4,7");
 DEFINE_int32(antcfg, 0, "0=LBA_OUTER, 1=LBA_INNER, 2=LBA_SPARSE_EVEN, 3=LBA_SPARSE_ODD");
@@ -43,12 +47,13 @@ int main(int argc, char *argv[])
   ::google::RegisterFlagValidator(&FLAGS_antpos, &val::ValidateFile);
   ::google::RegisterFlagValidator(&FLAGS_antcfg, &val::ValidateAntCfg);
 
-
   ::google::SetUsageMessage(USAGE);
-  ::google::SetVersionString(VERSION);
+  ::google::SetVersionString(VERSION_STRING);
   ::google::ParseCommandLineFlags(&argc, &argv, true);
   ::google::InitGoogleLogging(argv[0]);
   ::google::InstallFailureSignalHandler();
+
+  VLOG(1) << CALIBRATION_HUMAN_NAME;
 
   AntennaPositions::CreateInstance(FLAGS_antpos);
 
