@@ -78,7 +78,10 @@ void Flagger::Run(DataBlob &b)
   // Compute antenna power
   mAntennas = b.mACM.colwise().mean().array().abs();
   mAntMask = (mAntennas.array() < 1e-5f).select(Eigen::VectorXf::Zero(NUM_ANTENNAS), Eigen::VectorXf::Ones(NUM_ANTENNAS));
-  utils::SigmaClip(mAntennas, mAntMask, mAntSigma);
+
+  // Skip acm's that are all 0
+  if (mAntMask.sum() > 0.5f)
+    utils::SigmaClip(mAntennas, mAntMask, mAntSigma);
 
   // Now we can determine bad antennas
   for (int i = 0; i < NUM_ANTENNAS; i++)
